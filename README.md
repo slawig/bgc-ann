@@ -41,7 +41,7 @@ There are three groups of scripts:
 1. Creation and training of ANNs:
    The script `ANN_CreateNeuralNetwork.py` can be used to start the creation and training of new ANNs. For this purpose, the configuration of the ANN is read from the configuration file `ANN_Config_FCN.py` (for a fully connected network) or `ANN_Config_SET.py` (using the SET algorithm).
 2. Evaluation of the approximation using a ANN:
-   - The script `ANN_Evaluation.py' starts the evaluation of the approximation of a steady annual cycle by a ANN. For this purpose, the script `ANN_EvaluationJob.py` is called for each parameter vector of the test data to compute different approximations using the prediction of the ANN.
+   - The script `ANN_Evaluation.py` starts the evaluation of the approximation of a steady annual cycle by a ANN. For this purpose, the script `ANN_EvaluationJob.py` is called for each parameter vector of the test data to compute different approximations using the prediction of the ANN.
    - The script `ANN_InsertDatabase.py` writes the evaluation results into a database.
 3. Visualization of the results:
    - The script `ANN_Plotfunction.py` provides different functions to visualize the results.
