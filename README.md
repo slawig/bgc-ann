@@ -45,7 +45,7 @@ There are three groups of scripts:
    - The script `ANN_InsertDatabase.py` writes the evaluation results into a database.
 3. Visualization of the results:
    - The script `ANN_Plotfunction.py` provides different functions to visualize the results.
-   - The script `Plots_ANN_Paper.py` generates from the data provided on [Zenodo](https://doi.org/10.5281/zenodo.4058319) the figures that are shown in the draft of the paper with the title "Approximation of a marine ecosystem model by artificial neural networks designed using a genetic algorithm".
+   - The script `Plots_ANN_Paper.py` generates from the data provided on [Zenodo](https://doi.org/10.5281/zenodo.4058319) the figures that are shown in the draft of the paper with the title "Approximation of a marine ecosystem model by artificial neural networks designed using a genetic algorithm". A description of how to use this script is included in the Wiki.
 
 
 
