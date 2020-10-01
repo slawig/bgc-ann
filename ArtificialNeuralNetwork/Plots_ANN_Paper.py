@@ -11,24 +11,29 @@ from metos3dutil.plot.surfaceplot import SurfacePlot
 import metos3dutil.petsc.petscfile as petsc
 import metos3dutil.metos3d.constants as Metos3d_Constants
 from ann.database.access import Ann_Database
-from ann.network.FCN import FCN
-from ann.network.ANN_SET_MLP import SET_MLP
-
-#TODO: Update ANN_Genetic_Algorithm
-import ANN_Genetic_Algorithm
-
 from ANN_Plotfunction import ANN_Plot
 
 #Global variables
-PATH_FIGURE = 'PaperANN/Figures'
+PATH_DATABASE = '/sfs/fs2/work-sh1/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/ANN_Database.db'
+PATH_ANN_RESULTS = '/sfs/fs2/work-sh1/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/ANN-Results'
+PATH_REFERENCE_RESULTS = '/sfs/fs2/work-sh1/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/Reference-Results'
+PATH_FIGURE = '/sfs/fs2/work-sh1/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/Figures'
 
+
+#Pattern for the filenames of the tracer concentration
+PATTERN_PREDICTION = 'Prediction_{}.petsc'
+PATTERN_MASSCORRECTED_PREDICTION = 'MassCorrectedPrediction_{}.petsc'
+PATTERN_SPINUP_PREDICTION = 'Spinup_1000_Prediction_{}.petsc'
+PATTERN_SPINUP_MASSCORRECTED_PREDICTION = 'Spinup_1000_MassCorrectedPrediction_{}.petsc'
+PATTERN_SPINUP_TOLERANCE_MASSCORRECTED_PREDICTION = 'SpinupTolerance_MassCorrectedPrediction_{}.petsc'
+PATTERN_SPINUP_TOLERANCE = 'SpinupTolerance_{}.petsc'
 
 def main():
     """
     Create the plots and tables for the paper.
     @author: Markus Pfeil
     """
-    annPlot = ANN_Plot(orientation='gmd', fontsize=8)
+    annPlot = ANN_Plot(orientation='gmd', fontsize=8, dbpath=PATH_DATABASE, completeTable=False)
     
     #Parameter for the different plots
     norm = '2'
@@ -39,61 +44,62 @@ def main():
     colorloss = 'C7'
 
     #Plots for the fully connected network
-    annId = 222
+    annId = 0
     color = 'C0'
 
-    #Plot losses of the training
+    #Plot losses of the training (Figure 4.1)
     plotTraining(annPlot, annId, colors=[color, colorloss])
 
-    #Create table of relative difference using different norms
+    #Create table of relative difference using different norms (Table 4.1)
     table = tableNormConcentrationDifference(annId)
     print('Table:\n{}'.format(table))
 
-    #Surface plot (Figure 4.1)
+    #Surface plot (Figure 4.2, 4.3 and 4.4)
     plotTracerConcentrationSurface(annId, 0, massAdjustment=False, predictionMetos3d=False, plotSlice=True, slicenum=[117])
     plotTracerConcentrationSurface(annId, 0, massAdjustment=True, predictionMetos3d=False, plotSlice=True, slicenum=[117])
     plotTracerConcentrationSurface(annId, 0, massAdjustment=True, predictionMetos3d=True, plotSlice=True, slicenum=[117])
 
-    #Tatortplots (Figure 4.3: relative error for all sets of model parameter) for
+    #Tatortplots (Figure 4.5: relative error for all sets of model parameter)
     plotScatterNorm(annPlot, annId, orientation='etnatp4', rmax=0.4, color=color)
 
-    #Spinup norm (Figure 4.4)
+    #Spinup norm (Figure 4.6)
     plotSpinupData(annPlot, annId, 0, massAdjustment=True, tolerance=10**(-4), color=color)
-
-    #Histogram with required model years (Figure 4.5)
-    plotHistSpinupYear(annPlot, annId, massAdjustment=True, tolerance=10**(-4), color=color)
-
-
-    #Plots for the ANN trained with the SET algorithm
-    annId = 213
-    color = 'C1'
-
-    #Plot losses of the training
-    plotTraining(annPlot, annId, colors=[color, colorloss])
-
-    #Tatortplots (Figure 4.6: relative error for all sets of model parameter) for
-    plotScatterNorm(annPlot, annId, orientation='etnatp4', rmax=0.4, color=color)
 
     #Histogram with required model years (Figure 4.7)
     plotHistSpinupYear(annPlot, annId, massAdjustment=True, tolerance=10**(-4), color=color)
 
 
-    #Plots for the ANN designed with the genetic algorithm
-    annId = 207
-    color = 'C9'
+    #Plots for the ANN trained with the SET algorithm
+    annId = 1
+    color = 'C1'
 
-    #Plot losses of the training
+    #Plot losses of the training (Figure 4.8)
     plotTraining(annPlot, annId, colors=[color, colorloss])
 
-    #Tatortplots (Figure 4.8: relative error for all sets of model parameter) for
+    #Tatortplots (Figure 4.9: relative error for all sets of model parameter)
     plotScatterNorm(annPlot, annId, orientation='etnatp4', rmax=0.4, color=color)
 
-    #Histogram with required model years (Figure 4.9)
+    #Histogram with required model years (Figure 4.10)
+    plotHistSpinupYear(annPlot, annId, massAdjustment=True, tolerance=10**(-4), color=color)
+
+
+    #Plots for the ANN designed with the genetic algorithm
+    annId = 2
+    color = 'C9'
+
+    #Plot losses of the training (Figure 4.11)
+    plotTraining(annPlot, annId, colors=[color, colorloss])
+
+    #Tatortplots (Figure 4.12: relative error for all sets of model parameter)
+    plotScatterNorm(annPlot, annId, orientation='etnatp4', rmax=0.4, color=color)
+
+    #Histogram with required model years (Figure 4.13)
     plotHistSpinupYear(annPlot, annId, massAdjustment=True, tolerance=10**(-4), color=color)
 
 
     #Violinplot (Figure 5.1)
-    plotViolinSpinupYear(annPlot, annIdList=[222, 213, 207], massAdjustment=True, tolerance=10**(-4), colors=['C3', 'C0', 'C1', 'C9'])
+    plotViolinSpinupYear(annPlot, annIdList=[0, 1, 2], massAdjustment=True, tolerance=10**(-4), colors=['C3', 'C0', 'C1', 'C9'])
+
 
 
 def tableNormConcentrationDifference(annId, model='N', parameterId=0):
@@ -105,13 +111,13 @@ def tableNormConcentrationDifference(annId, model='N', parameterId=0):
     assert model in Metos3d_Constants.METOS3D_MODELS
     assert type(parameterId) is int and parameterId in range(0, ANN_Constants.PARAMETERID_MAX_TEST+1)
 
-    annDb = Ann_Database()
+    annDb = Ann_Database(dbpath=PATH_DATABASE, completeTable=False)
     concentrationId = annDb.get_concentrationId_annValues(annId)
 
     tableStr = '$\\mathbf{x}$ & $\\left\\| \\cdot \\right\\|_2$ & $\\left\\| \\cdot \\right\\|_{2,V}$ & $\\left\\| \\cdot \\right\\|_{2,T}$ & $\\left\\| \\cdot \\right\\|_{2,V,T}$ \\\\\n'
     tableStr += '\\hline\n'
 
-    combinations = [(False, 0, '$\\mathbf{y}_{\\text{ANN}}$'), (True, 0, '$\\mathbf{\\tilde{y}}_{\\text{ANN}}$'), (False, 1000, '$\\mathbf{y}^{1000}_{\\text{ANN}}$'), (True, 1000, '$\\mathbf{\\tilde{y}}^{1000}_{\\text{ANN}}$')]
+    combinations = [(False, 0, '$\\mathbf{y}_{\\text{ANN}}$'), (False, 1000, '$\\mathbf{y}^{1000}_{\\text{ANN}}$'), (True, 0, '$\\mathbf{\\tilde{y}}_{\\text{ANN}}$'), (True, 1000, '$\\mathbf{\\tilde{y}}^{1000}_{\\text{ANN}}$')]
     for (massAdjustment, year, label) in combinations:
         tableStr += '{:40s}'.format(label)
         for (norm, trajectory) in [('2', ''), ('Boxweighted', ''), ('2', 'Trajectory'), ('Boxweighted', 'Trajectory')]:
@@ -287,70 +293,53 @@ def plotViolinSpinupYear(annPlot, annIdList, massAdjustment=False, tolerance=Non
     annPlot.close_fig()
 
 
-def plotTracerConcentrationSurface(annId, parameterId, massAdjustment=False, tolerance=None, tracerDifference=True, relativeError=True, predictionMetos3d=False, cmap=None, plotSurface=True, plotSlice=False, slicenum=None, tracer_length=52749, orientation='etnasp'):
+def plotTracerConcentrationSurface(annId, parameterId, massAdjustment=False, tolerance=None, tracerDifference=True, relativeError=True, predictionMetos3d=False, cmap=None, plotSurface=True, plotSlice=False, slicenum=None, orientation='etnasp'):
     """
     Plot the tracer concentration for a given layer
     @author: Markus Pfeil
     """
-    assert type(annId) is int and annId in range(0, ANN_Constants.ANNID_MAX+1)
+    assert type(annId) is int and annId in range(0, 3)
     assert type(parameterId) is int and parameterId in range(0, ANN_Constants.PARAMETERID_MAX+1)
     assert slicenum is None or (slicenum is not None and isinstance(slicenum, list))
     assert type(massAdjustment) is bool
     assert tolerance is None or (tolerance > 0 and massAdjustment)
 
-    annDb = Ann_Database()
-    annTyp, annNumber, model, annConserveMass = annDb.get_annTypeNumberModelMass(annId)
-    if annTyp in ['fcn', 'cnn']:
-        annTyp, annNumber, model, validationSplit, kfoldSplit, epochs, trainingData = annDb.get_annConfig(annId)
+    annDb = Ann_Database(dbpath=PATH_DATABASE, completeTable=False)
+    annTyp, annNumber, model = annDb.get_annTypeNumberModel(annId)
     annDb.close_connection()
 
     #Prediction of the tracer concentration using the neural network
-    simulationPath = os.path.join(ANN_Constants.PATH, 'Prediction', model, 'AnnId_{:0>5d}'.format(annId), 'Parameter_{:0>3d}'.format(parameterId))
-    if tolerance is not None and massAdjustment:
-        simulationPath = os.path.join(simulationPath, 'SpinupTolerance', 'Tolerance_{:.1e}'.format(tolerance))
-    elif tolerance is not None and not massAdjustment:
-        simulationPath = os.path.join(simulationPath, 'SpinupTolerance', 'NoMassAdjustment', 'Tolerance_{:.1e}'.format(tolerance))
-    elif massAdjustment:
-        simulationPath = os.path.join(simulationPath, 'MassAdjustment')
+    Directory_Dict = {0: 'FCN', 1: 'SET', 2: 'GA'}
+    simulationPath = os.path.join(PATH_ANN_RESULTS, Directory_Dict[annId], 'Parameter_{:0>3d}'.format(parameterId))
 
-    if predictionMetos3d:
-        filename_prediction = os.path.join(simulationPath, 'Tracer', Metos3d_Constants.PATTERN_TRACER_OUTPUT)
+    if not predictionMetos3d:
+        filename_prediction = os.path.join(simulationPath, PATTERN_PREDICTION if not massAdjustment else PATTERN_MASSCORRECTED_PREDICTION)
     else:
-        filename_prediction = os.path.join(simulationPath, Metos3d_Constants.PATTERN_TRACER_INPUT)
+        if tolerance is None:
+            filename_prediction = os.path.join(simulationPath, PATTERN_SPINUP_PREDICTION if not massAdjustment else PATTERN_SPINUP_MASSCORRECTED_PREDICTION)
+        else:
+            filename_prediction = os.path.join(simulationPath, PATTERN_SPINUP_TOLERANCE_MASSCORRECTED_PREDICTION)
 
     file_prediction_exists = True
     for trac in Metos3d_Constants.METOS3D_MODEL_TRACER[model]:
         file_prediction_exists = file_prediction_exists and os.path.exists(filename_prediction.format(trac)) and os.path.isfile(filename_prediction.format(trac))
 
     if file_prediction_exists:
-        tracerConcentration = np.zeros(shape=(tracer_length, len(Metos3d_Constants.METOS3D_MODEL_TRACER[model])))
+        tracerConcentration = np.zeros(shape=(Metos3d_Constants.METOS3D_VECTOR_LEN, len(Metos3d_Constants.METOS3D_MODEL_TRACER[model])))
         i = 0
         for trac in Metos3d_Constants.METOS3D_MODEL_TRACER[model]:
             tracerConcentration[:, i] = petsc.readPetscFile(filename_prediction.format(trac))
             i = i + 1
     else:
-        #Use the prediction of the artificial neural network
-        if annTyp in ['fcn']:
-            model = FCN(self._annNumber)
-        elif annTyp == 'set':
-            model = SET_MLP(annNumber)
-            model.set_conserveMass(annConserveMass)
-        elif annTyp == 'setgen':
-            (gen, uid, ann_path) = ANN_Genetic_Algorithm.read_genome_file(annNumber)
-            model = SET_MLP(uid, setPath=False)
-            model.set_conserveMass(annConserveMass)
-        else:
-            assert False
-            
-        model.loadAnn()
-        tracerConcentration = model.predict(parameterId)
+        #There is no file with the tracer concentration
+        assert False
 
     #Calculate the norm of the tracer concentration vector
     if relativeError:
-        tracerVec = np.zeros(shape=(tracer_length, len(Metos3d_Constants.METOS3D_MODEL_TRACER[model])))
+        tracerVec = np.zeros(shape=(Metos3d_Constants.METOS3D_VECTOR_LEN, len(Metos3d_Constants.METOS3D_MODEL_TRACER[model])))
         i = 0
         for trac in Metos3d_Constants.METOS3D_MODEL_TRACER[model]:
-            filename_tracer = os.path.join(ANN_Constants.PATH, 'Tracer', model, 'Parameter_{:0>3d}'.format(parameterId), Metos3d_Constants.PATTERN_TRACER_OUTPUT.format(trac))
+            filename_tracer = os.path.join(PATH_REFERENCE_RESULTS, 'Parameter_{:0>3d}'.format(parameterId), PATTERN_SPINUP_TOLERANCE.format(trac))
             tracerVec[:,i] = petsc.readPetscFile(filename_tracer)
             i = i + 1
         normValue = np.linalg.norm(tracerVec)
@@ -361,7 +350,7 @@ def plotTracerConcentrationSurface(annId, parameterId, massAdjustment=False, tol
     i = 0
     for tracer in Metos3d_Constants.METOS3D_MODEL_TRACER[model]:
         #Set path to the tracer file
-        filename_tracer = os.path.join(ANN_Constants.PATH, 'Tracer', model, 'Parameter_{:0>3d}'.format(parameterId), Metos3d_Constants.PATTERN_TRACER_OUTPUT.format(tracer))
+        filename_tracer = os.path.join(PATH_REFERENCE_RESULTS, 'Parameter_{:0>3d}'.format(parameterId), PATTERN_SPINUP_TOLERANCE.format(tracer))
         assert os.path.exists(filename_tracer) and os.path.isfile(filename_tracer)
         #Read tracer vector
         tracerVecMetos3d = petsc.readPetscFile(filename_tracer)
@@ -408,11 +397,11 @@ def mapFilename(annId, massAdjustment=False, tolerance=None, year=None):
     filename = ''
 
     #Add part for the used ANN    
-    if annId == 222:
+    if annId == 0:
         filename = filename + '_FCN'
-    elif annId == 213:
+    elif annId == 1:
         filename = filename + '_SET'
-    elif annId == 207:
+    elif annId == 2:
         filename = filename + '_GEN'
     else:
         assert False
@@ -433,3 +422,4 @@ def mapFilename(annId, massAdjustment=False, tolerance=None, year=None):
 
 if __name__ == '__main__':
     main()
+
