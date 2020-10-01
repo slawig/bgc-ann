@@ -6,7 +6,9 @@ import numpy as np
 import logging
 
 from metos3dutil.database.AbstractClassDatabase import AbstractClassDatabase
+import ann.network.constants as ANN_Constants
 import ann.database.constants as ANN_DB_Constants
+import metos3dutil.database.constants as DB_Constants
 import metos3dutil.metos3d.constants as Metos3d_Constants
 
 
@@ -16,14 +18,15 @@ class Ann_Database(AbstractClassDatabase):
     @author: Markus Pfeil
     """
 
-    def __init__(self, dbpath=ANN_DB_Constants.dbPath):
+    def __init__(self, dbpath=ANN_DB_Constants.dbPath, completeTable=True):
         """
         Initialization of the database connection
         @author: Markus Pfeil
         """
         assert os.path.exists(dbpath) and os.path.isfile(dbpath)
+        assert type(completeTable) is bool
 
-        AbstractClassDatabase.__init__(self, dbpath)
+        AbstractClassDatabase.__init__(self, dbpath, completeTable=completeTable)
 
 
     def get_concentrationId_annValues(self, annId):

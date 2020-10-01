@@ -16,16 +16,18 @@ class AbstractClassDatabase(ABC):
     @author: Markus Pfeil
     """
 
-    def __init__(self, dbpath):
+    def __init__(self, dbpath, completeTable=True):
         """
         Initialization of the database connection
         @author: Markus Pfeil
         """
         assert os.path.exists(dbpath) and os.path.isfile(dbpath)
+        assert type(completeTable) is bool
 
         self._conn = sqlite3.connect(dbpath, timeout=DB_Constants.timeout)
         self._c = self._conn.cursor()
 
+        self._completeTable = completeTable
 
     def close_connection(self):
         """
@@ -94,11 +96,12 @@ class AbstractClassDatabase(ABC):
         assert len(concentrationParameter) == len(concentrationValues)
 
         sqlcommand = "SELECT concentrationId FROM InitialConcentration WHERE concentration_typ = 'constant' AND {} = ?".format(concentrationParameter[0])
-        for i in range(1, len(concentration_values)):
+        for i in range(1, len(concentrationValues)):
             sqlcommand = sqlcommand + ' AND {} = ?'.format(concentrationParameter[i])
         concentrationenParameterNone = Metos3d_Constants.TRACER_MASK[np.invert(Metos3d_Constants.METOS3D_MODEL_TRACER_MASK[metos3dModel])]
-        for i in range(0, len(concentrationenParameterNone)):
-            sqlcommand = sqlcommand + ' AND {} IS NULL'.format(concentrationenParameterNone[i])
+        if self._completeTable:
+            for i in range(0, len(concentrationenParameterNone)):
+                sqlcommand = sqlcommand + ' AND {} IS NULL'.format(concentrationenParameterNone[i])
         self._c.execute(sqlcommand, tuple(concentrationValues))
         concentrationId = self._c.fetchall()
         assert len(concentrationId) == 1

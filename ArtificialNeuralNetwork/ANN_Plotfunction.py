@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*
 
-
+import os
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -12,18 +12,22 @@ from metos3dutil.plot.plot import Plot
 import ann.network.constants as ANN_Constants
 import metos3dutil.metos3d.constants as Metos3d_Constants
 import metos3dutil.database.constants as DB_Constants
+import ann.database.constants as ANN_DB_Constants
 from ann.database.access import Ann_Database
 
 
 class ANN_Plot(Plot):
-    def __init__(self, orientation='lc1', fontsize=8):
+    def __init__(self, orientation='lc1', fontsize=8, dbpath=ANN_DB_Constants.dbPath, completeTable=True):
         """
         Initialise the database with the simulation data
         @author: Markus Pfeil
         """ 
+        assert os.path.exists(dbpath) and os.path.isfile(dbpath)
+        assert type(completeTable) is bool
+
         Plot.__init__(self, orientation=orientation, fontsize=fontsize)
         
-        self.database = Ann_Database()
+        self.database = Ann_Database(dbpath=dbpath, completeTable=completeTable)
         #Using color palette used by Vega (https://github.com/vega/vega/wiki/Scales#scale-range-literals): category10 and part of cartegory20
         self._colorsTimestep = {1: 'C0', 2: 'C1', 4: 'C2', 8: 'C3', 16: 'C4', 32: 'C5', 64: 'C9'}
 
