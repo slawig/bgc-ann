@@ -71,9 +71,14 @@ class JobAdministration():
                 self._startJob(jobsToStart.pop())
 
             #Check running Jobs
+            finishedJobs = []
             for jobnum in self._runningJobs:
                 if self._isJobTerminated(jobnum):
-                    del self._runningJobs[jobnum]
+                    finishedJobs.append(jobnum)
+
+            #Delete finished jobs
+            for jobnum in finishedJobs:
+                del self._runningJobs[jobnum]
 
             #Wait for the next check
             time.sleep(NeshCluster_Constants.TIME_SLEEP)
@@ -122,9 +127,10 @@ class JobAdministration():
         else:
             job_finished = True
 
-        if job_finised:
+        if job_finished:
             #Delete the batch job script
             jobDict = self._runningJobs[jobnum]
+            jobDict['finished'] = True
             os.chdir(jobDict['currentPath'])
             os.remove(jobDict['jobFilename'])
 
