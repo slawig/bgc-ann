@@ -40,7 +40,7 @@ class ANN_Evaluation(JobAdministration):
     @author: Markus Pfeil
     """
 
-    def __init__(self, annId, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), queue='clmedium', cores=2):
+    def __init__(self, annId, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), queue='clmedium', cores=2, trajectoryFlag=True):
         """
         Initialisation of the evaluation jobs of the ANN with the given annId.
         @author: Markus Pfeil
@@ -49,6 +49,7 @@ class ANN_Evaluation(JobAdministration):
         assert type(parameterIdList) in [list, range]
         assert queue in NeshCluster_Constants.QUEUE
         assert type(cores) is int and 0 < cores
+        assert type(trajectoryFlag) is bool
 
         JobAdministration.__init__(self)
 
@@ -56,6 +57,7 @@ class ANN_Evaluation(JobAdministration):
         self._parameterIdList = parameterIdList
         self._queue = queue
         self._cores = cores
+        self._trajectoryFlag = trajectoryFlag
 
         annDb = Ann_Database()
         self._annType, self._model = annDb.get_annTypeModel(self._annId)
@@ -111,6 +113,8 @@ class ANN_Evaluation(JobAdministration):
                     programm = programm + ' --massAdjustment'
                 if spinupToleranceReference:
                     programm = programm + ' --spinupToleranceReference'
+                if trajectoryFlag:
+                    programm = programm + ' --trajectory'
 
                 jobDict = {}
                 jobDict['jobFilename'] = filename

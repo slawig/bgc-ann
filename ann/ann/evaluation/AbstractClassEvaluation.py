@@ -9,6 +9,8 @@ import logging
 
 import ann.network.constants as ANN_Constants
 from ann.database.access import Ann_Database
+import metos3dutil.metos3d.constants as Metos3d_Constants
+import metos3dutil.petsc.petscfile as petsc
 
 
 class AbstractClassEvaluation(ABC):
@@ -41,14 +43,14 @@ class AbstractClassEvaluation(ABC):
         self._getAnnConfig()
         self._massAdjustment = massAdjustment
         self._tolerance = tolerance if (tolerance is not None) else 0.0
-        self._simulationPath = self._setSimulationPath()
+        self._spinupTolerance = True if (tolerance is not None) else False
+        self._spinupToleranceReference = spinupToleranceReference
 
         #Metos3dModel
         self._parameterId = parameterId
         self._timestep = 1
 
-        self._spinupTolerance = True if (tolerance is not None) else False
-        self._spinupToleranceReference = spinupToleranceReference
+        self._simulationPath = self._setSimulationPath()
  
 
     def logger_thread(self):
@@ -105,3 +107,27 @@ class AbstractClassEvaluation(ABC):
                 simulationPath = os.path.join(simulationPath, 'MassAdjustment')
         os.makedirs(simulationPath, exist_ok=True)
         return simulationPath
+
+
+    def _getTracerOutput(self, path, tracerPattern, year=None):
+        """
+        Read concentration values of all tracer for a given year
+        @author: Markus Pfeil
+        """
+        assert os.path.exists(path) and os.path.isdir(path)
+        assert type(tracerPattern) is str
+        assert year is None or type(year) is int and year >= 0
+
+        tracer_array = np.empty(shape=(Metos3d_Constants.METOS3D_VECTOR_LEN, len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])))
+        for i in range(len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])):
+            if year is None:
+                filename = tracerPattern.format(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model][i])
+            else:
+                filename = tracerPattern.format(year, Metos3d_Constants.METOS3D_MODEL_TRACER[self._model][i])
+            tracerfile = os.path.join(path, filename)
+            assert os.path.exists(tracerfile) and os.path.isfile(tracerfile)
+            tracer = petsc.readPetscFile(tracerfile)
+            assert len(tracer) == Metos3d_Constants.METOS3D_VECTOR_LEN
+            tracer_array[:,i] = tracer
+        return tracer_array
+

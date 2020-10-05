@@ -59,7 +59,7 @@ class PredictionEvaluation(AbstractClassEvaluation):
         self._queue = queue
         self._cores = cores
         
-        self.logger.info('***Time for initialisation: {:.6f}s***\n\n'.format(time.time() - self._startTime))
+        logging.info('***Time for initialisation: {:.6f}s***\n\n'.format(time.time() - self._startTime))
 
 
     def run(self, remove=False):
@@ -75,7 +75,7 @@ class PredictionEvaluation(AbstractClassEvaluation):
         timeSimulation = time.time()
         self._startOnestep(remove=remove)
         timeOnestep = time.time()
-        self.logger.info('***Time for tracer initialisation {:.6f}s, simulation: {:.6f}s and time for onestep: {:.6f}s***\n\n'.format(timeInitialTracer - timeStart, timeSimulation - timeInitialTracer, timeOnestep - timeSimulation))
+        logging.info('***Time for tracer initialisation {:.6f}s, simulation: {:.6f}s and time for onestep: {:.6f}s***\n\n'.format(timeInitialTracer - timeStart, timeSimulation - timeInitialTracer, timeOnestep - timeSimulation))
 
 
     def _generateInitalTracerConcentration(self):

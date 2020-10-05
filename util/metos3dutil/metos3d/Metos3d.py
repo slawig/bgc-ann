@@ -8,6 +8,7 @@ import multiprocessing as mp
 import threading
 import logging
 import numpy as np
+import re
 
 import metos3dutil.metos3d.constants as Metos3d_Constants
 import metos3dutil.petsc.petscfile as petsc
@@ -389,7 +390,7 @@ class Metos3d():
         assert os.path.exists(filename) and os.path.isfile(filename)
 
         last_spinup_line = None
-        with open(filename) as f:
+        with open(filename, 'r') as f:
             for line in f.readlines():
                 if 'Spinup Function norm' in line:
                     last_spinup_line = line
@@ -404,14 +405,56 @@ class Metos3d():
         return last_spinup_year
 
 
-def readBoxVolumes():
+    def read_spinup_norm_values(self, tolerance_only=False):
+        """
+        Read the values of the spin up norm from the output file of the spin up calculation.
+        @author: Markus Pfeil
+        """
+        filename = os.path.join(self._simulationPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME)
+        assert os.path.exists(filename) and os.path.isfile(filename)
+
+        years = self.lastSpinupYear()
+
+        if tolerance_only:
+            array_shape = (years, 2)
+        else:
+            array_shape = (years, 3)
+        spinup_norm_array = np.zeros(shape = array_shape)
+
+        with open(filename, 'r') as f:
+            i = 0
+            for line in f:
+                if tolerance_only:
+                    matches = re.search(r'^\s*\d+.\d+s (\d+) Spinup Function norm (\d+.\d+e[+-]\d+)', line)
+                    if matches:
+                        [year, tolerance] = matches.groups()
+                        spinup_norm_array[i,0] = int(year)
+                        spinup_norm_array[i,1] = float(tolerance)
+                        i = i + 1
+                else:
+                    matches = re.search(r'^\s*\d+.\d+s (\d+) Spinup Function norm (\d+.\d+e[+-]\d+) (\d+.\d+e[+-]\d+)', line)
+                    if matches:
+                        [year, tolerance, spinup_norm] = matches.groups()
+                        spinup_norm_array[i,0] = int(year)
+                        spinup_norm_array[i,1] = float(tolerance)
+                        spinup_norm_array[i,2] = float(spinup_norm)
+                        i = i + 1
+
+        return spinup_norm_array
+
+
+def readBoxVolumes(normvol=False):
     """
     Read volumes of the boxes
     @author: Markus Pfeil
     """
-    path = os.path.join(Metos3d_Constants.METOS3D_PATH, 'data/data/TMM/2.8/Geometry/volumes.petsc')
-    f = open(path, 'rb')
-    #Jump over the header
-    np.fromfile(f, dtype='>i4', count=2)
-    normvol = np.fromfile(f, dtype='>f8', count=Metos3d_Constants.METOS3D_VECTOR_LEN)
+    assert type(normvol) is bool
+
+    path = os.path.join(Metos3d_Constants.METOS3D_PATH, 'data/data/TMM/2.8/Geometry/normalizedVolumes.petsc' if normvol else 'data/data/TMM/2.8/Geometry/volumes.petsc')
+    with open(path, 'rb') as f:
+        #Jump over the header
+        np.fromfile(f, dtype='>i4', count=2)
+        normvol = np.fromfile(f, dtype='>f8', count=Metos3d_Constants.METOS3D_VECTOR_LEN)
+
     return normvol
+
