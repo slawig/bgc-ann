@@ -16,7 +16,7 @@ setuptools.setup(
     description = 'Util functions for the simulation with Metos3d',
     long_description = long_description,
     long_description_content_type = 'text/markdown',
-    url = 'https://github.com/todo', #TODO
+    url = 'https://github.com/slawig/bgc-ann/tree/master/util',
     license='AGPL',
     packages = setuptools.find_packages(),
     classifiers=[

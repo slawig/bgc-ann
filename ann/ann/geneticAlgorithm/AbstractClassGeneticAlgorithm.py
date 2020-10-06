@@ -41,7 +41,6 @@ class AbstractClassGeneticAlgorithm(ABC):
         self._master = AllGenomes()	# This is where we will store all genomes
 
 
-    #TODOdef create_population(self):
     def create_population(self, count):
         """
         Create a population of with random genomes.

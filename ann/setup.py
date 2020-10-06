@@ -16,7 +16,7 @@ setuptools.setup(
     description = 'Functions for the approximation of marine ecosystem model using artificial neural networks',
     long_description = long_description,
     long_description_content_type = 'text/markdown',
-    url = 'https://github.com/todo', #TODO
+    url = 'https://github.com/slawig/bgc-ann/tree/master/ann',
     license='AGPL',
     packages = setuptools.find_packages(),
     classifiers=[
@@ -26,3 +26,4 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
 )
+
