@@ -7,15 +7,14 @@ import logging
 import numpy as np
 import re
 
-import ann.network.constants as ANN_Constants
-import metos3dutil.metos3d.constants as Metos3d_Constants
 import neshCluster.constants as NeshCluster_Constants
-import ann.evaluation.constants as Evaluation_Constants
 import metos3dutil.database.constants as DB_Constants
-from ann.evaluation.AbstractClassEvaluation import AbstractClassEvaluation
+import metos3dutil.metos3d.constants as Metos3d_Constants
 import metos3dutil.metos3d.Metos3d as Metos3d
-#TODO Change import of ANN_Genetic_Algorithm
-import ANN_Genetic_Algorithm
+import ann.network.constants as ANN_Constants
+import ann.evaluation.constants as Evaluation_Constants
+from ann.evaluation.AbstractClassEvaluation import AbstractClassEvaluation
+from ann.geneticAlgorithm.ANN_GeneticAlgorithm import ANN_GeneticAlgorithm
 
 
 class DatabaseInsertEvaluation(AbstractClassEvaluation):
@@ -230,7 +229,8 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         elif self._annType == 'set':
             filenameTraining = os.path.join(ANN_Constants.PATH_SET, ANN_Constants.FCN_SET.format(self._annNumber), ANN_Constants.ANN_FILENAME_TRAINING_MONITOR.format(self._annNumber))
         elif self._annType == 'setgen':
-            (gen, uid, ann_path) = ANN_Genetic_Algorithm.read_genome_file(self._annNumber)
+            geneticAlgorithm = ANN_GeneticAlgorithm(gid=self._annNumber)
+            (gen, uid, ann_path) = geneticAlgorithm.readBestGenomeFile()
             filenameTraining = os.path.join(ann_path, ANN_Constants.ANN_FILENAME_TRAINING_MONITOR.format(uid))
 
         if not (os.path.exists(filenameTraining) and os.path.isfile(filenameTraining)):

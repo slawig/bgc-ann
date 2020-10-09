@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*
 
+ALGORITHMS = ['GeneticAlgorithm', 'Rechenberg']
+
+GA_Config_GeneticAlgorithm_Default = {'retain': 0.25,
+                                      'random_select': 0.1,
+                                      'mutate_chance': 0.3}
+GA_Config_Rechenberg_Default = {'alpha': 1.3, 
+                                'offspring': 10}
+
 all_possible_genes = {'nb_layers': [1, 10],
                       'nb_neurons': [1, 1000],
                       'activation': ['relu', 'elu', 'selu', 'linear'],

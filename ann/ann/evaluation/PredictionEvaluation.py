@@ -14,9 +14,7 @@ from ann.evaluation.AbstractClassEvaluation import AbstractClassEvaluation
 import ann.network.constants as ANN_Constants
 from ann.network.FCN import FCN
 from ann.network.ANN_SET_MLP import SET_MLP
-
-#TODO mpf: Durch neue Implementierung ersetzen
-import ANN_Genetic_Algorithm
+from ann.geneticAlgorithm.ANN_GeneticAlgorithm import ANN_GeneticAlgorithm
 
 
 class PredictionEvaluation(AbstractClassEvaluation):
@@ -90,7 +88,8 @@ class PredictionEvaluation(AbstractClassEvaluation):
         elif self._annType == 'set':
             model = SET_MLP(self._annNumber)
         elif self._annType == 'setgen':
-            (gen, uid, ann_path) = ANN_Genetic_Algorithm.read_genome_file(self._annNumber)
+            geneticAlgorithm = ANN_GeneticAlgorithm(gid=self._annNumber)
+            (gen, uid, ann_path) = geneticAlgorithm.readBestGenomeFile()
             model = SET_MLP(uid, setPath=False)
             model.set_path(ann_path)
             
