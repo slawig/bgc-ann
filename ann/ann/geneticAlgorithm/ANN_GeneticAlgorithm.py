@@ -72,7 +72,7 @@ class ANN_GeneticAlgorithm(JobAdministration):
         assert type(config) is dict 
         assert type(gaParameter) is dict
         
-        logging.info('***Run the genetic algorithm with gid {:d} for {:d} generations with a population size of {:d}***'.format(self._gid, self._generations, self._population))
+        logging.info('***Run the genetic algorithm with gid {:d} for {:d} generations with a population size of {:d}***'.format(self._gid, self._generations, self._populationSize))
         
         self._initEvolver(gaParameter=gaParameter)
         

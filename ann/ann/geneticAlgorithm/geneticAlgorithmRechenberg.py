@@ -38,7 +38,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
         Initilialize a new genome implementing the abstract class Genome.
         @author: Markus Pfeil
         """
-        self._create_genome()
+        return self._create_genome()
 
 
     def _create_genome(self, elterId=0, geneparam={}, mutability=random.random()):
