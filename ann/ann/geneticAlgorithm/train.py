@@ -24,7 +24,7 @@ def train_and_score(genome, metos3dModel, gid, indexMin=ANN_Constants.PARAMETERI
     assert type(indexMax) is int and indexMin < indexMax and indexMax <= ANN_Constants.PARAMETERID_MAX
     assert trainingSize is None or type(trainingSize) is int and 0 < trainingSize and trainingSize <= indexMax - indexMin
 
-    mlp = SET_MLP(gid, metos3dModel=metos3dModel, setPath=False)
+    mlp = SET_MLP(genome.u_ID, metos3dModel=metos3dModel, setPath=False)
     assert genome.geneparam['nb_layers'] == len(genome.geneparam['nb_neurons'])
     mlp.create_model(unitsPerLayer=genome.geneparam['nb_neurons'], activation=[genome.geneparam['activation'] for i in range(genome.geneparam['nb_layers'] + 1)]) # +1 for the output layer
 
