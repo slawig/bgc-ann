@@ -71,14 +71,10 @@ class JobAdministration():
                 self._startJob(jobsToStart.pop())
 
             #Check running Jobs
-            finishedJobs = []
-            for jobnum in self._runningJobs:
+            runningJobs = self._runningJobs
+            for jobnum in runningJobs:
                 if self._isJobTerminated(jobnum):
-                    finishedJobs.append(jobnum)
-
-            #Delete finished jobs
-            for jobnum in finishedJobs:
-                del self._runningJobs[jobnum]
+                    del self._runningJobs[jobnum]
 
             #Wait for the next check
             time.sleep(NeshCluster_Constants.TIME_SLEEP)

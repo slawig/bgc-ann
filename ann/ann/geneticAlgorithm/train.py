@@ -3,6 +3,7 @@
 
 import os
 import gc
+import random
 from keras import backend as K
 
 import metos3dutil.metos3d.constants as Metos3d_Constants
@@ -16,7 +17,7 @@ def train_and_score(genome, metos3dModel, gid, indexMin=ANN_Constants.PARAMETERI
     Train the model, return test loss.
     @author: Markus Pfeil
     """
-    assert type(genome) is dict
+    assert type(genome.geneparam) is dict
     assert metos3dModel in Metos3d_Constants.METOS3D_MODELS
     assert type(gid) is int and gid >= 0
     assert type(indexMin) is int and 0 <= indexMin

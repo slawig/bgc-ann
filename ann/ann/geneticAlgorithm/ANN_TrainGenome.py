@@ -45,7 +45,7 @@ def main(filename, metos3dModel='N', gid=0, indexMin=ANN_Constants.PARAMETERID_M
     genomeFilename = os.path.join(ANN_Constants.PATH, GA_Constants.GENETIC_ALGORITHM_DIRECTORY, GA_Constants.GENETIC_ALGORITHM.format(gid), GA_Constants.GENETIC_ALGORITHM_MODEL.format(genome.getGeneration(), genome.getUId()), GA_Constants.GENOME_FILENAME.format(gid, genome.getGeneration(), genome.getUId()))
 
     geneticAlgorithm = ANN_GeneticAlgorithm(gid=gid)
-    GeneticAlgorithm.saveGenome(genomeFilename, genome)
+    geneticAlgorithm.saveGenome(genomeFilename, genome)
 
 
 if __name__ == '__main__':

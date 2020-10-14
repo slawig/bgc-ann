@@ -358,7 +358,7 @@ class ANN_GeneticAlgorithm(JobAdministration):
                 jobDict['jobFilename'] = os.path.join(ANN_Constants.PATH, GA_Constants.GENETIC_ALGORITHM_DIRECTORY, GA_Constants.GENETIC_ALGORITHM.format(self._gid), GA_Constants.PATTERN_JOBFILE_TRANING_GENOME.format(self._gid, genome.getGeneration(), genome.getUId()))
                 jobDict['jobname'] = 'GA_{}_{}_TrainingGenome'.format(self._gid, genome.getUId())
                 jobDict['joboutput'] = os.path.join(pathLogs, GA_Constants.PATTERN_JOBOUTPUT_TRANING_GENOME.format(self._gid, genome.getGeneration(), genome.getUId()))
-                jobDict['programm'] = os.path.join(NeshCluster_Constants.PROGRAMM_PATH, programm)
+                jobDict['programm'] = os.path.join(NeshCluster_Constants.PYTHON_PATH, 'ann', 'ann', 'geneticAlgorithm', programm)
                 jobDict['queue'] = queue
                 jobDict['memory'] = 30
                 jobDict['cores'] = 1
@@ -392,11 +392,11 @@ class ANN_GeneticAlgorithm(JobAdministration):
             if jobDict['queue'] == 'clmedium':
                 jobDict['queue'] = 'cllong'
                 self._removeDirectory(jobDict['genomeUid'], jobDict['generation'])
-                self.__startJob(jobDict)
+                self._startJob(jobDict)
             elif jobDict['queue'] == 'cllong':
                 jobDict['queue'] = 'clbigmem'
                 self._removeDirectory(jobDict['genomeUid'], jobDict['generation'])
-                self.__startJob(jobDict)
+                self._startJob(jobDict)
             else:
                 logging.info('***Could not train the neural network {} in generation {}***'.format(jobDict['genomeUid'], jobDict['generation']))
                 assert False
