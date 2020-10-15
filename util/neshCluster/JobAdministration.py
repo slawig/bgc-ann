@@ -71,7 +71,7 @@ class JobAdministration():
                 self._startJob(jobsToStart.pop())
 
             #Check running Jobs
-            runningJobs = self._runningJobs
+            runningJobs = list(self._runningJobs)
             for jobnum in runningJobs:
                 if self._isJobTerminated(jobnum):
                     del self._runningJobs[jobnum]

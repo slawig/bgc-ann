@@ -129,7 +129,7 @@ class ConserveMass(Layer):
 class SET_MLP(ANN):
     """
     Sparse evolutionary training (SET)
-    The implementation of SET was taken from https://github.com/dcmocanu/sparse-evolutionary-artificial-neural-networks/blob/master/SET-MLP-Keras-Weights-Mask/set_mlp_keras_cifar10.py
+    The implementation of this algorithm is based on the implementation of Mocanu: https://github.com/dcmocanu/sparse-evolutionary-artificial-neural-networks/blob/master/SET-MLP-Keras-Weights-Mask/set_mlp_keras_cifar10.py
     @author: Markus Pfeil
     """
 
@@ -251,9 +251,9 @@ class SET_MLP(ANN):
         assert len(unitsPerLayer) + 1 == len(activation)  #Last activation function is for the output layer
         assert dropout is None or type(dropout) is float and 0.0 < dropout and dropout < 1.0
 
-        self._unitsPerLayer = unitsPerLayer                                                           # Includes only the hidden layer
+        self._unitsPerLayer = unitsPerLayer.copy()                                                    # Includes only the hidden layer
         self._unitsPerLayer.append(Metos3d_Constants.METOS3D_MODEL_OUTPUT_LENGTH[self._metos3dModel]) # Include the output layer
-        self._activation = activation
+        self._activation = activation.copy()
         self._dropout = dropout
 
         self._init_weights()

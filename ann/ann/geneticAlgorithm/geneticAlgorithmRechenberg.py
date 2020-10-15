@@ -86,7 +86,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
             self._master.add_genome(genome)
             children.append(genome)
 
-        assert len(childen) == child_count
+        assert len(children) == child_count
         return children
 
 

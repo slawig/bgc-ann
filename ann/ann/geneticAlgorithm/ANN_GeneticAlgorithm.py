@@ -142,7 +142,10 @@ class ANN_GeneticAlgorithm(JobAdministration):
         checkNextGeneration = True
         while checkNextGeneration and self._startGeneration < self._generations + 1:
             (checkNextGeneration, genomes) = self._readGenomesGeneration()
-            if self._algorithm == 'GeneticAlgorithm':
+            if not checkNextGeneration and len(genomes) == 0 and self._startGeneration > 1:
+                logging.info('***Evolve genomes for generation {:d}***'.format(self._startGeneration))
+                self._genomes = self._evolver.evolve(self._genomes)
+            elif self._algorithm == 'GeneticAlgorithm':
                 if self._startGeneration == 1:
                     self._genomes = genomes
                 else:
@@ -267,7 +270,7 @@ class ANN_GeneticAlgorithm(JobAdministration):
             if i != generations - 1:
                 # Evolve!
                 logging.info('***Evolve genomes for generation {:d}***'.format(generation + 1))
-                self._genomes = evolver.evolve(self._genomes)
+                self._genomes = self._evolver.evolve(self._genomes)
 
             #Create data backup for the generation
             logging.info('***Generate backup of the generation {:d}***'.format(generation))

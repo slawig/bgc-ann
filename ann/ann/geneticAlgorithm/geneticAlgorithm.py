@@ -79,7 +79,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
                 child['nb_layers'] = len(child['nb_neurons'])
 
             #Initialize a new genome
-            genome = self.create_genome(motherId=mother.u_ID, fatherId=father.u_ID, geneparam=child)
+            genome = self._create_genome(motherId=mother.u_ID, fatherId=father.u_ID, geneparam=child)
 
             #Randomly mutate one gene
             if self._mutate_chance > random.random(): 
@@ -92,7 +92,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
             self._master.add_genome(genome)
             children.append(genome)
 
-        assert len(childen) == child_count
+        assert len(children) == child_count
         return children
 
 

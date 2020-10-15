@@ -4,6 +4,7 @@
 from abc import ABC, abstractmethod
 from functools import reduce
 from operator import add
+import copy
 
 import ann.geneticAlgorithm.constants as GA_Constants
 from ann.geneticAlgorithm.AbstractClassGenome import AbstractClassGenome
@@ -60,7 +61,7 @@ class AbstractClassGeneticAlgorithm(ABC):
                 genome.mutate()
 
             # Add the genome to the population and to the master list
-            population.append(genome)
+            population.append(copy.deepcopy(genome))
             self._master.add_genome(genome)
 
         return population
