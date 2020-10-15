@@ -158,6 +158,9 @@ class ANN_GeneticAlgorithm(JobAdministration):
                 assert False
 
             if checkNextGeneration:
+                logging.info('***Generation average: {:.5e}***'.format(self._getAverageAccuracy()))
+                self._printGenomes()
+
                 self._updateUidList()
                 self._startGeneration += 1
 
@@ -195,6 +198,14 @@ class ANN_GeneticAlgorithm(JobAdministration):
                         increaseId = not self._containUid(genomeUid)
                         self._evolver.add_genome(genome, increaseId=increaseId)
                         genomes.append(genome)
+
+                #Remove jobfile and second genome file
+                jobfile = os.path.join(ANN_Constants.PATH, GA_Constants.GENETIC_ALGORITHM_DIRECTORY, GA_Constants.GENETIC_ALGORITHM.format(self._gid), GA_Constants.PATTERN_JOBFILE_TRANING_GENOME.format(self._gid, self._startGeneration, genomeUid)) 
+                genomeFile = os.path.join(ANN_Constants.PATH, GA_Constants.GENETIC_ALGORITHM_DIRECTORY, GA_Constants.GENETIC_ALGORITHM.format(self._gid), GA_Constants.GENOME_FILENAME.format(self._gid, self._startGeneration, genomeUid))
+                if os.path.exists(jobfile) and os.path.isfile(jobfile):
+                    os.remove(jobfile)
+                if os.path.exists(genomeFile) and os.path.isfile(genomeFile):
+                    os.remove(genomeFile)
             else:
                 #Genome has to be trained so read the original genome file
                 checkGeneration = False
