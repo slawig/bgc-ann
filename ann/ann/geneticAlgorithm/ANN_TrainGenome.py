@@ -9,7 +9,7 @@ import pickle
 import metos3dutil.metos3d.constants as Metos3d_Constants
 import ann.network.constants as ANN_Constants
 import ann.geneticAlgorithm.constants as GA_Constants
-from ann.geneticAlgorithm.ANN_GeneticAlgorithm import ANN_GeneticAlgorithm
+from ann.geneticAlgorithm.geneticAlgorithm import GeneticAlgorithm
 import ann.geneticAlgorithm.genome
 
 
@@ -44,7 +44,7 @@ def main(filename, metos3dModel='N', gid=0, indexMin=ANN_Constants.PARAMETERID_M
     
     genomeFilename = os.path.join(ANN_Constants.PATH, GA_Constants.GENETIC_ALGORITHM_DIRECTORY, GA_Constants.GENETIC_ALGORITHM.format(gid), GA_Constants.GENETIC_ALGORITHM_MODEL.format(genome.getGeneration(), genome.getUId()), GA_Constants.GENOME_FILENAME.format(gid, genome.getGeneration(), genome.getUId()))
 
-    geneticAlgorithm = ANN_GeneticAlgorithm(gid=gid)
+    geneticAlgorithm = GeneticAlgorithm(gid=gid)
     geneticAlgorithm.saveGenome(genomeFilename, genome)
 
 

@@ -14,7 +14,7 @@ import metos3dutil.metos3d.Metos3d as Metos3d
 import ann.network.constants as ANN_Constants
 import ann.evaluation.constants as Evaluation_Constants
 from ann.evaluation.AbstractClassEvaluation import AbstractClassEvaluation
-from ann.geneticAlgorithm.ANN_GeneticAlgorithm import ANN_GeneticAlgorithm
+from ann.geneticAlgorithm.geneticAlgorithm import GeneticAlgorithm
 
 
 class DatabaseInsertEvaluation(AbstractClassEvaluation):
@@ -229,7 +229,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         elif self._annType == 'set':
             filenameTraining = os.path.join(ANN_Constants.PATH_SET, ANN_Constants.FCN_SET.format(self._annNumber), ANN_Constants.ANN_FILENAME_TRAINING_MONITOR.format(self._annNumber))
         elif self._annType == 'setgen':
-            geneticAlgorithm = ANN_GeneticAlgorithm(gid=self._annNumber)
+            geneticAlgorithm = GeneticAlgorithm(gid=self._annNumber)
             (gen, uid, ann_path) = geneticAlgorithm.readBestGenomeFile()
             filenameTraining = os.path.join(ann_path, ANN_Constants.ANN_FILENAME_TRAINING_MONITOR.format(uid))
 

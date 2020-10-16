@@ -133,7 +133,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
             (checkNextGeneration, genomes) = self._readGenomesGeneration()
             if not checkNextGeneration and len(genomes) == 0 and self._generation > 1:
                 logging.info('***Evolve genomes for generation {:d}***'.format(self._generation))
-                self._genomes = self.evolve(self._genomes)
+                self._evolve()
             else:
                 if self._generation == 1:
                     self._genomes = genomes
@@ -148,6 +148,6 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
 
                 self._population[self._generation] = sorted(self._genomes, key=lambda x: x.accuracy)[:self._populationSize]
 
-                self._updateUidList()
+                self._updateUidDic()
                 self._generation += 1
 

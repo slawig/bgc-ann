@@ -156,7 +156,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
             parents = random.sample(range(ng_length), k=2)
 
             mother = new_generation[parents[0]]
-            fahter = new_generation[parents[1]]
+            father = new_generation[parents[1]]
 
             #Recombine and mutate
             children = self._breed([mother, father])
@@ -179,7 +179,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
             (checkNextGeneration, genomes) = self._readGenomesGeneration()
             if not checkNextGeneration and len(genomes) == 0 and self._generation > 1:
                 logging.info('***Evolve genomes for generation {:d}***'.format(self._generation))
-                self._genomes = self.evolve(self._genomes)
+                self._evolve()
             else:
                 if self._generation == 1:
                     self._genomes = genomes
@@ -191,6 +191,6 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
                 self._printGenomes()
 
                 self._population[self._generation] = self._genomes
-                self._updateUidList()
+                self._updateUidDic()
                 self._generation += 1
 
