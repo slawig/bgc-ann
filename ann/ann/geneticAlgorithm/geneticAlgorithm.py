@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*
 
-import random
 import copy
+import logging
+import random
 
+import metos3dutil.metos3d.constants as Metos3d_Constants
 from ann.geneticAlgorithm.AbstractClassGeneticAlgorithm import AbstractClassGeneticAlgorithm
 import ann.geneticAlgorithm.constants as GA_Constants
 from ann.geneticAlgorithm.genome import Genome
@@ -15,15 +17,18 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
     @author: Markus Pfeil
     """
 
-    def __init__(self, all_possible_genes = GA_Constants.all_possible_genes, select_possible_genes = GA_Constants.select_possible_genes, populationSize = 10, retain = 0.15, random_select = 0.1, mutate_chance = 0.3):
+    def __init__(self, gid = None, all_possible_genes = GA_Constants.all_possible_genes, select_possible_genes = GA_Constants.select_possible_genes, populationSize = 10, generations = 50, metos3dModel = 'N', retain = 0.15, random_select = 0.1, mutate_chance = 0.3):
         """
         Initialize the genetic algorithm.
         @author: Markus Pfeil
         """
+        assert gid is None or type(gid) is int and 0 <= gid
         assert type(all_possible_genes) is dict
         assert type(select_possible_genes) is dict
         assert len(all_possible_genes) == len(select_possible_genes)
         assert type(populationSize) is int and 0 < populationSize
+        assert type(generations) is int and 0 < generations
+        assert metos3dModel in Metos3d_Constants.METOS3D_MODELS
         assert type(retain) is float and 0 <= retain and retain <= 1
         assert type(random_select) is float and 0 <= random_select and random_select <= 1
         assert type(mutate_chance) is float and 0 <= mutate_chance and mutate_chance <= 1
@@ -31,8 +36,8 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
         self._retain = retain
         self._random_select = random_select
         self._mutate_chance = mutate_chance
-
-        AbstractClassGeneticAlgorithm.__init__(self, all_possible_genes=all_possible_genes, select_possible_genes=select_possible_genes, populationSize=populationSize)
+        self._retain_length = int(populationSize * self._retain)
+        AbstractClassGeneticAlgorithm.__init__(self, gid=gid, all_possible_genes=all_possible_genes, select_possible_genes=select_possible_genes, populationSize=populationSize, generations=generations, metos3dModel=metos3dModel)
 
 
     def _init_genome(self):
@@ -96,7 +101,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
         return children
 
 
-    def evolve(self, population):
+    def _evolve(self):
         """
         Evolve a population of genomes.
         @author: Markus Pfeil
@@ -105,23 +110,20 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
         self._ids.increase_Gen()
 
         #Get scores for each genome
-        graded = [(self.fitness(genome), genome) for genome in population]
+        graded = [(self.fitness(genome), genome) for genome in self._genomes]
 
         #Use those scores to fill in the master list
-        for genome in population:
+        for genome in self._genomes:
             self._master.set_accuracy(genome)
 
         #Sort on the scores
         graded = [x[1] for x in sorted(graded, key=lambda x: x[0])]
 
-        #Get the number we want to keep unchanged for the next cycle
-        retain_length = int(len(graded) * self._retain)
-
         #Keep the top X percent (as defined in self.retain) without changing them
-        new_generation = graded[:retain_length]
+        new_generation = graded[:self._retain_length]
 
         #Randomly keep some of the lower scoring ones and mutate them
-        for genome in graded[retain_length:]:
+        for genome in graded[self._retain_length:]:
             if self._random_select > random.random():
                 gtc = copy.deepcopy(genome)
 
@@ -134,7 +136,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
         
         #Two genome are mandatory as parents for the new generation
         while len(new_generation) < 2:
-            genome = random.choice(graded[retain_length:])
+            genome = random.choice(graded[self._retain_length:])
             gtc = copy.deepcopy(genome)
 
             while self._master.is_duplicate(gtc):
@@ -144,29 +146,51 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
             new_generation.append(gtc)
             self._master.add_genome(gtc)
 
-        #How many spots we have to fill using breeding
+        #Current number of genomes in the new genertion using for recombination
         ng_length = len(new_generation)
-        desired_length = self._populationSize - ng_length
-
-        children = []
 
         #Breed genomes using pairs of remaining genomes
-        while len(children) < desired_length:
+        while len(new_generation) < self._populationSize:
 
             #Randomly select a distinct mother and father
             parents = random.sample(range(ng_length), k=2)
 
-            female = new_generation[parents[0]]
-            male   = new_generation[parents[1]]
+            mother = new_generation[parents[0]]
+            fahter = new_generation[parents[1]]
 
             #Recombine and mutate
-            babies = self._breed([female, male])
+            children = self._breed([mother, father])
 
             #Add the children up to the desired_length
-            for baby in babies:
-                if len(children) < desired_length:
-                    children.append(baby)
+            for child in children:
+                if len(new_generation) < self._populationSize:
+                    new_generation.append(child)
 
-        new_generation.extend(children)
+        self._genomes = new_generation
 
-        return new_generation
+
+    def _readTrainedGeneration(self):
+        """
+        Read the generations already trained.
+        @author: Markus Pfeil
+        """
+        checkNextGeneration = True
+        while checkNextGeneration and self._generation < self._generations + 1:
+            (checkNextGeneration, genomes) = self._readGenomesGeneration()
+            if not checkNextGeneration and len(genomes) == 0 and self._generation > 1:
+                logging.info('***Evolve genomes for generation {:d}***'.format(self._generation))
+                self._genomes = self.evolve(self._genomes)
+            else:
+                if self._generation == 1:
+                    self._genomes = genomes
+                else:
+                    self._genomes = sorted(self._genomes, key=lambda x: x.accuracy)[:self._retain_length] + genomes
+
+            if checkNextGeneration:
+                logging.info('***Generation average: {:.5e}***'.format(self._getAverageAccuracy()))
+                self._printGenomes()
+
+                self._population[self._generation] = self._genomes
+                self._updateUidList()
+                self._generation += 1
+

@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*
 
-import random
 import copy
+import logging
+import random
 
+import metos3dutil.metos3d.constants as Metos3d_Constants
 from ann.geneticAlgorithm.AbstractClassGeneticAlgorithm import AbstractClassGeneticAlgorithm
 import ann.geneticAlgorithm.constants as GA_Constants
 from ann.geneticAlgorithm.genomeRechenberg import Genome
@@ -15,22 +17,25 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
     @author: Markus Pfeil
     """
 
-    def __init__(self, all_possible_genes = GA_Constants.all_possible_genes, select_possible_genes = GA_Constants.select_possible_genes, populationSize = 10, alpha = 1.3, offspring = 10):
+    def __init__(self, gid = None, all_possible_genes = GA_Constants.all_possible_genes, select_possible_genes = GA_Constants.select_possible_genes, populationSize = 10, generations = 50, metos3dModel = 'N', alpha = 1.3, offspring = 10):
         """
         Initialize the genetic algorithm of Rechenberg.
         @author: Markus Pfeil
         """
+        assert gid is None or type(gid) is int and 0 <= gid
         assert type(all_possible_genes) is dict
         assert type(select_possible_genes) is dict
         assert len(all_possible_genes) == len(select_possible_genes)
         assert type(populationSize) is int and 0 < populationSize
+        assert type(generations) is int and 0 < generations
+        assert metos3dModel in Metos3d_Constants.METOS3D_MODELS
         assert type(alpha) is float and 0 < alpha
         assert type(offspring) is int and 0 < offspring
         
         self._alpha = alpha
         self._offspring = offspring
 
-        AbstractClassGeneticAlgorithm.__init__(self, all_possible_genes=all_possible_genes, select_possible_genes=select_possible_genes, populationSize=populationSize)       
+        AbstractClassGeneticAlgorithm.__init__(self, gid=gid, all_possible_genes=all_possible_genes, select_possible_genes=select_possible_genes, populationSize=populationSize, generations=generations, metos3dModel=metos3dModel)       
  
 
     def _init_genome(self):
@@ -90,17 +95,17 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
         return children
 
 
-    def evolve(self, population):
+    def _evolve(self):
         """
         Evolve a population of genomes.
         @author: Markus Pfeil
         """
         #Selection
         #Get scores for each genome
-        graded = [(self.fitness(genome), genome) for genome in population]
+        graded = [(self.fitness(genome), genome) for genome in self._genomes]
         
         #Use those scores to fill in the master list
-        for genome in population:
+        for genome in self._genomes:
             self._master.set_accuracy(genome)
         
         #Sort on the scores.
@@ -113,6 +118,36 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
         new_generation = copy.deepcopy(graded[:self._populationSize])
         
         for _ in range(self._offspring):
-            new_generation.extend(self._breed(random.choice(population)))
+            new_generation.extend(self._breed(random.choice(self._genomes)))
         
-        return new_generation[:self._populationSize+self._offspring]
+        self._genomes = new_generation[:self._populationSize+self._offspring]
+
+
+    def _readTrainedGeneration(self):
+        """
+        Read the generations already trained.
+        @author: Markus Pfeil
+        """
+        checkNextGeneration = True
+        while checkNextGeneration and self._generation < self._generations + 1:
+            (checkNextGeneration, genomes) = self._readGenomesGeneration()
+            if not checkNextGeneration and len(genomes) == 0 and self._generation > 1:
+                logging.info('***Evolve genomes for generation {:d}***'.format(self._generation))
+                self._genomes = self.evolve(self._genomes)
+            else:
+                if self._generation == 1:
+                    self._genomes = genomes
+                elif self._generation == 2:
+                    self._genomes = sorted(self._genomes, key=lambda x: x.accuracy) + genomes
+                else:
+                    self._genomes = sorted(self._genomes, key=lambda x: x.accuracy)[:self._populationSize] + genomes
+
+            if checkNextGeneration:
+                logging.info('***Generation average: {:.5e}***'.format(self._getAverageAccuracy()))
+                self._printGenomes()
+
+                self._population[self._generation] = sorted(self._genomes, key=lambda x: x.accuracy)[:self._populationSize]
+
+                self._updateUidList()
+                self._generation += 1
+
