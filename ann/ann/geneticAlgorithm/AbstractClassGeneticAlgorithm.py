@@ -215,6 +215,8 @@ class AbstractClassGeneticAlgorithm(ABC, JobAdministration):
             logging.info('***Generate backup of the generation {:d}***'.format(self._generation))
             self.generateBackup(generation=self._generation)
 
+            self._generation += 1
+
         #Sort our final population according to performance
         self._genomes = sorted(self._genomes, key=lambda x: x.accuracy)
 
@@ -530,7 +532,8 @@ class AbstractClassGeneticAlgorithm(ABC, JobAdministration):
                 assert False
         else:
             genomeFile = os.path.join(self._pathGA, jobDict['genomeFilename'])
-            os.remove(genomeFile)
+            if os.path.exists(genomeFile) and os.path.isfile(genomeFile):
+                os.remove(genomeFile)
             jobDict["finished"] = True
 
         return True
@@ -542,7 +545,7 @@ class AbstractClassGeneticAlgorithm(ABC, JobAdministration):
         @author: Markus Pfeil
         """
         assert generation is None or type(generation) is int and 0 < generation
-        assert generation is None or generation in self._uidDic
+        assert generation is None or generation in self._genomesUidDic
         assert compression in ['bz2']
         assert compresslevel in range(1, 10)
 
