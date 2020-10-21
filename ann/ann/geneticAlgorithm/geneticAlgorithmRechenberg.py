@@ -63,7 +63,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
         Make childs from parental genes.
         @author: Markus Pfeil
         """
-        assert type(elter) is list and len(elter) == 1
+        assert type(elter) is not None
         assert type(child_count) is int and child_count > 0
 
         children = []
@@ -79,7 +79,7 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
             mutability = zeta * elter.mutability
         
             #Initialize a new genome
-            genome = self._create_genome(elterId=elter.u_ID, geneparam=child, mutability=mutability)
+            genome = self._create_genome(elterId=elter.getUId(), geneparam=child, mutability=mutability)
 
             #Randomly mutate
             genome.mutate()
@@ -118,8 +118,8 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
         new_generation = copy.deepcopy(graded[:self._populationSize])
         
         for _ in range(self._offspring):
-            new_generation.extend(self._breed(random.choice(self._genomes)))
-        
+            new_generation.extend(self._breed(copy.deepcopy(random.choice(self._genomes))))
+       
         self._genomes = new_generation[:self._populationSize+self._offspring]
 
 

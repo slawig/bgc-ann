@@ -155,8 +155,8 @@ class GeneticAlgorithm(AbstractClassGeneticAlgorithm):
             #Randomly select a distinct mother and father
             parents = random.sample(range(ng_length), k=2)
 
-            mother = new_generation[parents[0]]
-            father = new_generation[parents[1]]
+            mother = copy.deepcopy(new_generation[parents[0]])
+            father = copy.deepcopy(new_generation[parents[1]])
 
             #Recombine and mutate
             children = self._breed([mother, father])
