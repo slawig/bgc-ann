@@ -6,7 +6,7 @@ import os
 import ann.network.constants as ANN_Constants
 import neshCluster.constants as NeshCluster_Constants
 import ann.evaluation.constants as Evaluation_Constants
-from JobAdministration import JobAdministration
+from neshCluster.JobAdministration import JobAdministration
 from ann.database.access import Ann_Database
 
 
@@ -113,7 +113,7 @@ class ANN_Evaluation(JobAdministration):
                     programm = programm + ' --massAdjustment'
                 if spinupToleranceReference:
                     programm = programm + ' --spinupToleranceReference'
-                if trajectoryFlag:
+                if self._trajectoryFlag:
                     programm = programm + ' --trajectory'
 
                 jobDict = {}

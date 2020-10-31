@@ -2,11 +2,12 @@
 # -*- coding: utf8 -*
 
 from abc import ABC, abstractmethod
+import numpy as np
 import os
 import sqlite3
-import numpy as np
 
 import metos3dutil.database.constants as DB_Constants
+import metos3dutil.latinHypercubeSample.constants as LHS_Constants
 import metos3dutil.metos3d.constants as Metos3d_Constants
 
 
@@ -76,7 +77,7 @@ class AbstractClassDatabase(ABC):
             if modelParameter[i] is not None:
                 parameter.append(modelParameter[i])
 
-        if model == 'MITgcm-PO4-DOP':
+        if metos3dModel == 'MITgcm-PO4-DOP':
             assert len(parameter) == 7
             parameter = [parameter[5], parameter[1], parameter[4], parameter[2], parameter[3], parameter[0], parameter[6]]
 

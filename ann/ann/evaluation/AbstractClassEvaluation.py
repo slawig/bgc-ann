@@ -87,7 +87,7 @@ class AbstractClassEvaluation(ABC):
         Read model parameter for the given parameter id and model.
         @author: Markus Pfeil
         """
-        self._modelParameter = self._annDatabase.get_parameter(self._parameterId, self._model)
+        self._modelParameter = list(self._annDatabase.get_parameter(self._parameterId, self._model))
 
 
     def _setSimulationPath(self):
