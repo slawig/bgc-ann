@@ -219,8 +219,9 @@ class Metos3d():
         optionfile = self._optionfile()
         x = subprocess.run("mpirun $NQSII_MPIOPTS -np {:d} {} {}\n".format(self._cores * NeshCluster_Constants.CPUNUM[self._queue], self._modelPath, optionfile), shell=True, stdout=subprocess.PIPE, check=True)
         stdout_str = x.stdout.decode(encoding='UTF-8')
-        with open(os.path.join(self._simulationPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME), mode='w') as fid:
-            fid.write(stdout_str)
+        if not self._oneStep:
+            with open(os.path.join(self._simulationPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME), mode='w') as fid:
+                fid.write(stdout_str)
         self.logger.debug('Output of the simulation\n{}'.format(stdout_str))
         os.remove(optionfile)
 
@@ -278,7 +279,7 @@ class Metos3d():
         
         if self._oneStep:
             self._options['/metos3d/tracer_input_dir'] = os.path.join(self._simulationPath, 'Tracer')
-            options['/metos3d/input_filenames'] = [Metos3d_Constants.PATTERN_TRACER_TRAJECTORY.format(int(self._oneStepYear - 1), int(Metos3d_Constants.METOS3D_STEPS_PER_YEAR/self._timestep - 1), tracer) for tracer in Metos3d_Constants.METOS3D_MODEL_TRACER[self._model]]    
+            self._options['/metos3d/input_filenames'] = [Metos3d_Constants.PATTERN_TRACER_TRAJECTORY.format(int(self._oneStepYear - 1), int(Metos3d_Constants.METOS3D_STEPS_PER_YEAR/self._timestep - 1), tracer) for tracer in Metos3d_Constants.METOS3D_MODEL_TRACER[self._model]]    
             self._options['/metos3d/tracer_output_dir'] = os.path.join(self._simulationPath, 'TracerOnestep')
             os.makedirs(self._options['/metos3d/tracer_output_dir'], exist_ok=True)
             self._options['/metos3d/output_filenames'] = [Metos3d_Constants.PATTERN_TRACER_OUTPUT_YEAR.format(self._oneStepYear, tracer) for tracer in Metos3d_Constants.METOS3D_MODEL_TRACER[self._model]]

@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*
 
-import os
-import time
 import logging
 import numpy as np
+import os
 import re
+import shutil
+import sqlite3
+import time
 
 import neshCluster.constants as NeshCluster_Constants
 import metos3dutil.database.constants as DB_Constants
@@ -83,7 +85,10 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
             return True
         else:
             filename = os.path.join(ANN_Constants.PATH, 'Prediction', 'Joboutput', Evaluation_Constants.PATTERN_JOBOUTPUT.format(self._annType, self._model, self._annId, self._parameterId, self._massAdjustment, self._tolerance, self._cpunum))
-        return os.path.exists(filename) and os.path.isfile(filename)
+
+        joboutputFilename = os.path.join(self._simulationPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME)
+
+        return (os.path.exists(filename) and os.path.isfile(filename)) or (os.path.exists(joboutputFilename) and os.path.isfile(joboutputFilename))
 
 
     def checkAnnTraining(self):
@@ -266,7 +271,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         """
         assert type(overwrite) is bool
 
-        self.__getModelParameter()
+        self._getModelParameter()
         metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = NeshCluster_Constants.DEFAULT_QUEUE, cores = NeshCluster_Constants.DEFAULT_CORES)
         spinup_norm_array = metos3d.read_spinup_norm_values()
         spinup_norm_array_shape = np.shape(spinup_norm_array)
@@ -275,13 +280,13 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
                 year = spinup_norm_array[i,0]
                 tolerance = spinup_norm_array[i,1]
                 if spinup_norm_array_shape[1] == 3:
-                    spinupNorm = spinup_norm_array[i,2]
+                    spinupNorm = float(spinup_norm_array[i,2])
                 else:
                     spinupNorm = None
 
                 if year == 0 and tolerance == 0 and spinupNorm is not None and spinupNorm == 0:
                     raise ValueError()
-                self._annDatabase.insert_spinup(self._simulationId, year, tolerance, spinupNorm, overwrite=overwrite)
+                self._annDatabase.insert_spinup(self._simulationId, int(year), float(tolerance), spinupNorm, overwrite=overwrite)
         except (sqlite3.IntegrityError, ValueError):
             logging.error('Inadmissable values for simulationId {:0>4d} and year {:0>4}\n'.format(self._simulationId, year))
 
@@ -297,7 +302,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         vol_vec = np.empty(shape=(len(vol), len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])))
         for i in range(len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])):
             vol_vec[:,i] = vol
-        overallMass = sum(Metos3d_Constants.INITIAL_CONCENTRATION[self._model]) * np.sum(vol_vec)
+        overallMass = float(sum(Metos3d_Constants.INITIAL_CONCENTRATION[self._model]) * np.sum(vol_vec))
 
         pathMetos3dTracer = os.path.join(self._simulationPath, 'Tracer')
         pathPredictionTracer = self._simulationPath
@@ -308,24 +313,24 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
 
         if not self._spinupToleranceReference:
             tracerPrediction = self._getTracerOutput(pathPredictionTracer, Metos3d_Constants.PATTERN_TRACER_INPUT, year=None)
-            massPrediction = np.sum(tracerPrediction * vol_vec)
-            self._annDatabase.insert_mass(self._simulationId, 0, massPrediction/overallMass, massPrediction-overallMass, overwrite=overwrite)
+            massPrediction = float(np.sum(tracerPrediction * vol_vec))
+            self._annDatabase.insert_mass(self._simulationId, 0, float(massPrediction/overallMass), float(massPrediction-overallMass), overwrite=overwrite)
 
         lastYear = self._years
         if self._spinupTolerance:
-            self.__getModelParameter()
+            self._getModelParameter()
             metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = NeshCluster_Constants.DEFAULT_QUEUE, cores = NeshCluster_Constants.DEFAULT_CORES)
             lastYear = metos3d.lastSpinupYear()
 
         for year in range(self._trajectoryYear, lastYear, self._trajectoryYear):
             tracerMetos3d = self._getTracerOutput(pathMetos3dTracerOneStep, Metos3d_Constants.PATTERN_TRACER_OUTPUT_YEAR, year=year)
-            massMetos3d = np.sum(tracerMetos3d * vol_vec)
-            self._annDatabase.insert_mass(self._simulationId, year, massMetos3d/overallMass, massMetos3d-overallMass, overwrite=overwrite)
+            massMetos3d = float(np.sum(tracerMetos3d * vol_vec))
+            self._annDatabase.insert_mass(self._simulationId, year, float(massMetos3d/overallMass), float(massMetos3d-overallMass), overwrite=overwrite)
 
         tracerMetos3d = self._getTracerOutput(pathMetos3dTracer, Metos3d_Constants.PATTERN_TRACER_OUTPUT, year=None)
         #Mass of the tracer
-        massMetos3d = np.sum(tracerMetos3d * vol_vec)
-        self._annDatabase.insert_mass(self._simulationId, lastYear, massMetos3d/overallMass, massMetos3d-overallMass, overwrite=overwrite)
+        massMetos3d = float(np.sum(tracerMetos3d * vol_vec))
+        self._annDatabase.insert_mass(self._simulationId, lastYear, float(massMetos3d/overallMass), float(massMetos3d-overallMass), overwrite=overwrite)
 
 
     def calculateNorm(self, overwrite=False):
@@ -380,7 +385,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
 
         lastYear = self._years
         if self._spinupTolerance:
-            self.__getModelParameter()
+            self._getModelParameter()
             metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = NeshCluster_Constants.DEFAULT_QUEUE, cores = NeshCluster_Constants.DEFAULT_CORES)
             lastYear = metos3d.lastSpinupYear()
 
@@ -424,9 +429,9 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         tracerNorm = np.sqrt(np.sum((tracer)**2 * normWeight))
         tracerSingleValue = [None, None, None, None, None]
         for t in range(len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])):
-            tracerSingleValue[t] = np.sqrt(np.sum((tracer[:,t])**2 * normWeight[:,t]))
+            tracerSingleValue[t] = float(np.sqrt(np.sum((tracer[:,t])**2 * normWeight[:,t])))
 
-        self._annDatabase.insert_tracer_norm_tuple(self._simulationId, year, tracerNorm, tracerSingleValue[0], DOP=tracerSingleValue[1], P=tracerSingleValue[2], Z=tracerSingleValue[3], D=tracerSingleValue[4], norm=norm, overwrite=overwrite)
+        self._annDatabase.insert_tracer_norm_tuple(self._simulationId, year, float(tracerNorm), tracerSingleValue[0], DOP=tracerSingleValue[1], P=tracerSingleValue[2], Z=tracerSingleValue[3], D=tracerSingleValue[4], norm=norm, overwrite=overwrite)
 
 
     def _calculateTracerDifferenceNorm(self, yearA, simulationId, yearB, tracerA, tracerB, norm, normWeight, overwrite=False):
@@ -435,7 +440,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         @author: Markus Pfeil
         """
         assert type(simulationId) is int and simulationId >= 0
-        assert type(yearA) is int and year >= 0
+        assert type(yearA) is int and yearA >= 0
         assert type(yearB) is int and yearB >= 0
         assert type(tracerA) is np.ndarray
         assert type(tracerB) is np.ndarray
@@ -446,8 +451,8 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         tracerDifferenceNorm = np.sqrt(np.sum((tracerA - tracerB)**2 * normWeight))
         tracerSingleValue = [None, None, None, None, None]
         for t in range(len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])):
-            tracerSingleValue[t] = np.sqrt(np.sum((tracerA[:,t] - tracerB[:,t])**2 * normWeight[:,t]))
-        self._annDatabase.insert_difference_tracer_norm_tuple(self._simulationId, simulationId, yearA, yearB, tracerDifferenceNorm, tracerSingleValue[0], DOP=tracerSingleValue[1], P=tracerSingleValue[2], Z=tracerSingleValue[3], D=tracerSingleValue[4], norm=norm, overwrite=overwrite)
+            tracerSingleValue[t] = float(np.sqrt(np.sum((tracerA[:,t] - tracerB[:,t])**2 * normWeight[:,t])))
+        self._annDatabase.insert_difference_tracer_norm_tuple(self._simulationId, simulationId, yearA, yearB, float(tracerDifferenceNorm), tracerSingleValue[0], DOP=tracerSingleValue[1], P=tracerSingleValue[2], Z=tracerSingleValue[3], D=tracerSingleValue[4], norm=norm, overwrite=overwrite)
 
 
     def _calculateTracerDeviation(self, tracer, year, overwrite=False):
@@ -479,14 +484,14 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         negativeCountValue = [None, None, None, None, None]
         negativeSumValue = [None, None, None, None, None]
         for i in range(len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])):
-            meanValue[i] = mean[i]
-            varValue[i] = var[i]
-            minimumValue[i] = minimum[i]
-            maximumValue[i] = maximal[i]
+            meanValue[i] = float(mean[i])
+            varValue[i] = float(var[i])
+            minimumValue[i] = float(minimum[i])
+            maximumValue[i] = float(maximal[i])
             #Calculation of the count of boxes with negative concentrations
-            negativeCountValue[i] = np.count_nonzero(tracer[tracer[:,i]<0, i])
+            negativeCountValue[i] = float(np.count_nonzero(tracer[tracer[:,i]<0, i]))
             #Calculation of the sum of all negative concentrations
-            negativeSumValue[i] = np.sum(tracer[tracer[:,i]<0, i])
+            negativeSumValue[i] = float(np.sum(tracer[tracer[:,i]<0, i]))
 
         self._annDatabase.insert_deviation_tracer_tuple(self._simulationId, year, meanValue[0], varValue[0], minimumValue[0], maximumValue[0], negativeCountValue[0], negativeSumValue[0], DOP_mean=meanValue[1], DOP_var=varValue[1], DOP_min=minimumValue[1], DOP_max=maximumValue[1], DOP_negative_count=negativeCountValue[1], DOP_negative_sum=negativeSumValue[1], P_mean=meanValue[2], P_var=varValue[2], P_min=minimumValue[2], P_max=maximumValue[2], P_negative_count=negativeCountValue[2], P_negative_sum=negativeSumValue[2], Z_mean=meanValue[3], Z_var=varValue[3], Z_min=minimumValue[3], Z_max=maximumValue[3], Z_negative_count=negativeCountValue[3], Z_negative_sum=negativeSumValue[3], D_mean=meanValue[4], D_var=varValue[4], D_min=minimumValue[4], D_max=maximumValue[4], D_negative_count=negativeCountValue[4], D_negative_sum=negativeSumValue[4], overwrite=overwrite)
 
@@ -525,14 +530,14 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         negativeCountValue = [None, None, None, None, None]
         negativeSumValue = [None, None, None, None, None]
         for i in range(len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])):
-            meanValue[i] = mean[i]
-            varValue[i] = var[i]
-            minimumValue[i] = minimum[i]
-            maximumValue[i] = maximal[i]
+            meanValue[i] = float(mean[i])
+            varValue[i] = float(var[i])
+            minimumValue[i] = float(minimum[i])
+            maximumValue[i] = float(maximal[i])
             #Calculation of the count of boxes with negative concentrations
-            negativeCountValue[i] = np.count_nonzero(tracer[tracer[:,i]<0, i])
+            negativeCountValue[i] = float(np.count_nonzero(tracer[tracer[:,i]<0, i]))
             #Calculation of the sum of all negative concentrations
-            negativeSumValue[i] = np.sum(tracer[tracer[:,i]<0, i])
+            negativeSumValue[i] = float(np.sum(tracer[tracer[:,i]<0, i]))
 
         self._annDatabase.insert_difference_tracer_deviation_tuple(self._simulationId, simulationId, yearA, yearB, meanValue[0], varValue[0], minimumValue[0], maximumValue[0], negativeCountValue[0], negativeSumValue[0], DOP_mean=meanValue[1], DOP_var=varValue[1], DOP_min=minimumValue[1], DOP_max=maximumValue[1], DOP_negative_count=negativeCountValue[1], DOP_negative_sum=negativeSumValue[1], P_mean=meanValue[2], P_var=varValue[2], P_min=minimumValue[2], P_max=maximumValue[2], P_negative_count=negativeCountValue[2], P_negative_sum=negativeSumValue[2], Z_mean=meanValue[3], Z_var=varValue[3], Z_min=minimumValue[3], Z_max=maximumValue[3], Z_negative_count=negativeCountValue[3], Z_negative_sum=negativeSumValue[3], D_mean=meanValue[4], D_var=varValue[4], D_min=minimumValue[4], D_max=maximumValue[4], D_negative_count=negativeCountValue[4], D_negative_sum=negativeSumValue[4], overwrite=overwrite)
 
@@ -580,7 +585,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
 
         lastYear = self._years
         if self._spinupTolerance:
-            self.__getModelParameter()
+            self._getModelParameter()
             metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = NeshCluster_Constants.DEFAULT_QUEUE, cores = NeshCluster_Constants.DEFAULT_CORES)
             lastYear = metos3d.lastSpinupYear()
 
@@ -622,7 +627,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         assert type(trajectory) is np.ndarray 
         assert type(year) is int and year >= 0
         assert norm in DB_Constants.NORM
-        assert normWeight is np.ndarray
+        assert type(normWeight) is np.ndarray
         assert type(timestep) is int and timestep in Metos3d_Constants.METOS3D_TIMESTEPS
         assert simulationId is None or type(simulationId) is int and 0 <= simulationId
         assert type(overwrite) is bool
@@ -631,10 +636,10 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         trajectoryNorm = np.sqrt(np.sum(trajectory**2 * normWeight) * dt)
         trajectorySingleValue = [None, None, None, None, None]
         for t in range(len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])):
-            trajectorySingleValue[t] = np.sqrt(np.sum((trajectory[:,t,:])**2 * normWeight[:,t,:]) * dt)
+            trajectorySingleValue[t] = float(np.sqrt(np.sum((trajectory[:,t,:])**2 * normWeight[:,t,:]) * dt))
 
         simId = self._simulationId if simulationId is None else simulationId
-        self._annDatabase.insert_tracer_norm_tuple(simId, year, trajectoryNorm, trajectorySingleValue[0], DOP=trajectorySingleValue[1], P=trajectorySingleValue[2], Z=trajectorySingleValue[3], D=trajectorySingleValue[4], norm=norm, trajectory='Trajectory', overwrite=overwrite)
+        self._annDatabase.insert_tracer_norm_tuple(simId, year, float(trajectoryNorm), trajectorySingleValue[0], DOP=trajectorySingleValue[1], P=trajectorySingleValue[2], Z=trajectorySingleValue[3], D=trajectorySingleValue[4], norm=norm, trajectory='Trajectory', overwrite=overwrite)
 
 
     def _calculateTrajectoryDifferenceTracerNorm(self, yearA, simulationId, yearB, trajectoryA, trajectoryB, norm, normWeight, timestep=1, overwrite=False):
@@ -656,9 +661,9 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         trajectoryDifferenceNorm = np.sqrt(np.sum((trajectoryA - trajectoryB)**2 * normWeight) * dt)
         trajectorySingleValue = [None, None, None, None, None]
         for t in range(len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])):
-            trajectorySingleValue[t] = np.sqrt(np.sum((trajectoryA[:,t,:] - trajectoryB[:,t,:])**2 * normWeight[:,t,:]) * dt)
+            trajectorySingleValue[t] = float(np.sqrt(np.sum((trajectoryA[:,t,:] - trajectoryB[:,t,:])**2 * normWeight[:,t,:]) * dt))
 
-        self._annDatabase.insert_difference_tracer_norm_tuple(self._simulationId, simulationId, yearA, yearB, trajectoryDifferenceNorm, trajectorySingleValue[0], DOP=trajectorySingleValue[1], P=trajectorySingleValue[2], Z=trajectorySingleValue[3], D=trajectorySingleValue[4], norm=norm, trajectory='Trajectory', overwrite=overwrite)
+        self._annDatabase.insert_difference_tracer_norm_tuple(self._simulationId, simulationId, yearA, yearB, float(trajectoryDifferenceNorm), trajectorySingleValue[0], DOP=trajectorySingleValue[1], P=trajectorySingleValue[2], Z=trajectorySingleValue[3], D=trajectorySingleValue[4], norm=norm, trajectory='Trajectory', overwrite=overwrite)
 
 
     def _calculateTrajectory(self, metos3dSimulationPath, year=0, lastYear=False, timestep=1, modelYears=0):
@@ -676,7 +681,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         tracer_path = os.path.join(metos3dSimulationPath, 'Tracer')
         os.makedirs(tracer_path, exist_ok=True)
 
-        self.__getModelParameter()
+        self._getModelParameter()
         model = Metos3d.Metos3d(self._model, timestep, self._modelParameter, metos3dSimulationPath, modelYears = modelYears, queue = self._queue, cores = self._cores)
         model.setCalculateOnlyTrajectory()
 

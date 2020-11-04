@@ -2,10 +2,11 @@
 # -*- coding: utf8 -*
 
 from abc import ABC, abstractmethod
-import os
-import multiprocessing as mp
-import threading
 import logging
+import multiprocessing as mp
+import numpy as np
+import os
+import threading
 
 import ann.network.constants as ANN_Constants
 from ann.database.access import Ann_Database

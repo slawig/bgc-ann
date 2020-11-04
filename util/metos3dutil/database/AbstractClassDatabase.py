@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*
 
 from abc import ABC, abstractmethod
+import logging
 import numpy as np
 import os
 import sqlite3
