@@ -31,6 +31,7 @@ class AbstractClassDatabase(ABC):
 
         self._completeTable = completeTable
 
+
     def close_connection(self):
         """
         Close the database connection
@@ -84,6 +85,39 @@ class AbstractClassDatabase(ABC):
 
         assert len(parameter) == len(Metos3d_Constants.PARAMETER_NAMES[Metos3d_Constants.PARAMETER_RESTRICTION[metos3dModel]])
         return np.array(parameter)
+
+
+    def insert_parameter(self, parameter, metos3dModel):
+        """
+        Insert parameter values for the given model
+        @author: Markus Pfeil
+        """
+        assert metos3dModel in Metos3d_Constants.METOS3D_MODELS
+        assert type(parameter) is list and len(parameter) == Metos3d_Constants.METOS3D_MODEL_INPUT_PARAMTER_LENGTH[metos3dModel]
+
+        sqlcommand = 'SELECT MAX(parameterId) FROM Parameter'
+        self._c.execute(sqlcommand)
+        dataset = self._c.fetchall()
+        assert len(dataset) == 1
+        parameterId = dataset[0][0] + 1
+
+        if metos3dModel == 'MITgcm-PO4-DOP':
+            parameter = [parameter[5], parameter[1], parameter[4], parameter[2], parameter[3], parameter[0], parameter[6]]
+
+        purchases = []
+        modelParameter = [None for _ in range(20)]
+        i = 0
+        for j in range(20):
+            if Metos3d_Constants.PARAMETER_RESTRICTION[metos3dModel][j]:
+                modelParameter[j] = parameter[i]
+                i = i + 1
+        assert i == Metos3d_Constants.METOS3D_MODEL_INPUT_PARAMTER_LENGTH[metos3dModel]
+
+        purchases.append((parameterId,) + tuple(modelParameter))
+        self._c.executemany('INSERT INTO Parameter VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', purchases)
+        self._conn.commit()
+
+        return parameterId
 
 
     def get_concentrationId_constantValues(self, metos3dModel, concentrationValues):
