@@ -2,8 +2,9 @@
 # -*- coding: utf8 -*
 
 import argparse
-import os
 import logging
+import os
+import sqlite3
 import traceback
 
 import ann.network.constants as ANN_Constants

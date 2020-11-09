@@ -123,6 +123,7 @@ class ANN_Evaluation(JobAdministration):
                 jobDict['programm'] = os.path.join(NeshCluster_Constants.PROGRAMM_PATH, programm)
                 jobDict['queue'] = self._queue
                 jobDict['cores'] = self._cores
+                jobDict['memory'] = 30
 
                 self.addJob(jobDict)
 
