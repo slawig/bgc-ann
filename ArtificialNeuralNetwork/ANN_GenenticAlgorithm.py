@@ -46,7 +46,7 @@ def main(gid):
         ga = GeneticAlgorithm(gid=gid, populationSize=config['populationSize'], generations=config['generations'], metos3dModel=config['metos3dModel'], retain=evolverParameter['retain'], random_select=evolverParameter['random_select'], mutate_chance=evolverParameter['mutate_chance'])
 
     elif config['algorithm'] == 'Rechenberg':
-        if len(gaParameter) == 2:
+        if len(config['gaParameter']) == 2:
             assert 'alpha' in config['gaParameter'] and type(config['gaParameter']['alpha']) is float and 0.0 < config['gaParameter']['alpha']
             assert 'offspring' in config['gaParameter'] and type(config['gaParameter']['offspring']) is int and 0 < config['gaParameter']['offspring']
 
@@ -56,7 +56,7 @@ def main(gid):
 
         logging.info('***Used parameter for evolutionary strategy (Rechenberg): alpha {:f} and offspring {:d}***'.format(evolverParameter['alpha'], evolverParameter['offspring']))
 
-        ga = GeneticAlgorithmRechenberg(gid=gid, populationSiza=config['populationSize'], generations=config['generations'], metos3dModel=config['metos3dModel'], alpha=evolverParameter['alpha'], offspring=evolverParameter['offspring'])
+        ga = GeneticAlgorithmRechenberg(gid=gid, populationSize=config['populationSize'], generations=config['generations'], metos3dModel=config['metos3dModel'], alpha=evolverParameter['alpha'], offspring=evolverParameter['offspring'])
     else:
         assert False, 'Not implemented genetic algorithm {:s}'.format(self._algorithm)
 
