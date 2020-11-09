@@ -126,7 +126,7 @@ class Genome(AbstractClassGenome):
         logging.info('Genome: UniID: {:d}'.format(self.u_ID))
         logging.info('Genome: Elter: {:d}'.format(self.elter_ID))
         logging.info('Genome: Mutability: {:.2f}'.format(self.mutability))
-        logging.info('Genome: Alpha: {.2f}'.format(self._alpha))
+        logging.info('Genome: Alpha: {:.2f}'.format(self._alpha))
         logging.info('Genome: Accuracy: {:.5e}'.format(self.accuracy))
         logging.info('Genome: Hash: {:s}'.format(self.hash))
 
@@ -137,4 +137,4 @@ class Genome(AbstractClassGenome):
         @author: Markus Pfeil
         """
         self.print_geneparam()
-        logging.info('Genome: Generation: {:d} UniID: {:d} Elter: {:d} Mutability: {:.2f}  Alpha: {:.2f} Accuracy: {.5e} Hash: {:s}'.format(self.generation, self.u_ID, self.elter_ID, self.mutability, self._alpha, self.accuracy, self.hash))
+        logging.info('Genome: Generation: {:d} UniID: {:d} Elter: {:d} Mutability: {:.2f}  Alpha: {:.2f} Accuracy: {:.5e} Hash: {:s}'.format(self.generation, self.u_ID, self.elter_ID, self.mutability, self._alpha, self.accuracy, self.hash))
