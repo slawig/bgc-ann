@@ -17,11 +17,21 @@ ANN_Config_GA = {}
 
 ANN_Config_GA[0] = {'algorithm': 'GeneticAlgorithm',
                     'generations': 10,
-                    'populationSize': 30}
+                    'populationSize': 30,
+                    'config': {'indexMin': 0,
+                               'indexMax': 1100}}
 
 ANN_Config_GA[1] = {'algorithm': 'Rechenberg',
                     'generations': 50,
-                    'populationSize': 10}
+                    'populationSize': 10,
+                    'config': {'indexMin': ANN_Constants.PARAMETERID_MAX_TEST+1,
+                               'indexMax': ANN_Constants.PARAMETERID_MAX}}
+
+ANN_Config_GA[2] = {'algorithm': 'GeneticAlgorithm',
+                    'generations': 10,
+                    'populationSize': 30,
+                    'config': {'indexMin': ANN_Constants.PARAMETERID_MAX_TEST+1,
+                               'indexMax': ANN_Constants.PARAMETERID_MAX}}
 
 ANN_Config_GA[5] = {'algorithm': 'GeneticAlgorithm',
                     'generations': 10,
@@ -36,4 +46,16 @@ ANN_Config_GA[6] = {'algorithm': 'Rechenberg',
                     'config': {'indexMin': ANN_Constants.PARAMETERID_MAX_TEST+1,
                                'indexMax': 1000,
                                'trainingSize': 100}}
+
+ANN_Config_GA[7] = {'algorithm': 'GeneticAlgorithm',
+                    'generations': 10,
+                    'populationSize': 30,
+                    'config': {'indexMin': ANN_Constants.PARAMETERID_MAX_TEST+1,
+                               'indexMax': 1100}}
+
+ANN_Config_GA[8] = {'algorithm': 'Rechenberg',
+                    'generations': 50,
+                    'populationSize': 10,
+                    'config': {'indexMin': ANN_Constants.PARAMETERID_MAX_TEST+1,
+                               'indexMax': 1100}}
 
