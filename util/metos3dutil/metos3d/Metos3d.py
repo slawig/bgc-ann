@@ -21,7 +21,7 @@ class Metos3d():
     @author: Markus Pfeil
     """
 
-    def __init__(self, model, timestep, modelParameter, simulationPath, modelYears = 10000, queue = 'clmedium', cores = 2):
+    def __init__(self, model, timestep, modelParameter, simulationPath, modelYears = 10000, queue = NeshCluster_Constants.DEFAULT_QUEUE, cores = NeshCluster_Constants.DEFAULT_CORES):
         """
         Initialisation for metos3d
         @author: Markus Pfeil
@@ -244,7 +244,7 @@ class Metos3d():
         """
         self._options = {}
         self._options['/metos3d/debuglevel'] = 1
-        self._options['/metos3d/data_dir'] = os.path.join(Metos3d_Constants.METOS3D_PATH, 'data/data/TMM/2.8')
+        self._options['/metos3d/data_dir'] = os.path.join(Metos3d_Constants.METOS3D_PATH, 'data', 'data', 'TMM', '2.8')
 
         self._options['/metos3d/tracer_count'] = len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])
         self._options['/metos3d/tracer_name'] = Metos3d_Constants.METOS3D_MODEL_TRACER[self._model]
@@ -451,7 +451,7 @@ def readBoxVolumes(normvol=False):
     """
     assert type(normvol) is bool
 
-    path = os.path.join(Metos3d_Constants.METOS3D_PATH, 'data/data/TMM/2.8/Geometry/normalizedVolumes.petsc' if normvol else 'data/data/TMM/2.8/Geometry/volumes.petsc')
+    path = os.path.join(Metos3d_Constants.METOS3D_PATH, 'data', 'data', 'TMM', '2.8', 'Geometry', 'normalizedVolumes.petsc' if normvol else 'volumes.petsc')
     with open(path, 'rb') as f:
         #Jump over the header
         np.fromfile(f, dtype='>i4', count=2)
