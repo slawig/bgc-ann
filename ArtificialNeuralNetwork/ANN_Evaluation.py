@@ -10,7 +10,7 @@ from neshCluster.JobAdministration import JobAdministration
 from ann.database.access import Ann_Database
 
 
-def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), queue='clmedium', cores=2):
+def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), queue=NeshCluster_Constants.DEFAULT_QUEUE, cores=NeshCluster_Constants.DEFAULT_CORES):
     """
     Evaluate the artificial neural networks using
       - the prediction
@@ -21,7 +21,7 @@ def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAM
       - the mass-corrected prediction as intial concentration for a spin up with tolerance 10**(-4)
     @author: Markus Pfeil
     """
-    assert type(annIdList) is list
+    assert type(annIdList) in [list, range]
     assert type(parameterIdList) in [list, range]
     assert queue in NeshCluster_Constants.QUEUE
     assert type(cores) is int and 0 < cores
@@ -29,8 +29,7 @@ def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAM
     for annId in annIdList:
         evaluation = ANN_Evaluation(annId, parameterIdList=parameterIdList, queue=queue, cores=cores)
         evaluation.generateJobList()
-
-    evaluation.runJobs()
+        evaluation.runJobs()
 
 
 
@@ -40,7 +39,7 @@ class ANN_Evaluation(JobAdministration):
     @author: Markus Pfeil
     """
 
-    def __init__(self, annId, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), queue='clmedium', cores=2, trajectoryFlag=True):
+    def __init__(self, annId, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), queue=NeshCluster_Constants.DEFAULT_QUEUE, cores=NeshCluster_Constants.DEFAULT_CORES, trajectoryFlag=True):
         """
         Initialisation of the evaluation jobs of the ANN with the given annId.
         @author: Markus Pfeil
