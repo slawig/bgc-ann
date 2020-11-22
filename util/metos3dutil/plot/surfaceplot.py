@@ -8,7 +8,6 @@ from mpl_toolkits.basemap import Basemap, maskoceans, interp
 
 from metos3dutil.plot.plot import Plot
 import metos3dutil.metos3d.constants as Metos3d_Constants
-import metos3dutil.petsc.petscfile as petsc
 
 
 class SurfacePlot(Plot):
