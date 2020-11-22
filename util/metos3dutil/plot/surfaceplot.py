@@ -258,35 +258,3 @@ class SurfacePlot(Plot):
 
         return vExpand
 
-
-    def _reorganize_data(self, v1d):
-        """
-        Reorganize the tracer concentration vector (v1d) from a one dimensional vector to a three dimensional vector using the land sea mask.
-        @author: Markus Pfeil
-        """
-        assert type(v1d) is np.ndarray and np.shape(v1d) == (Metos3d_Constants.METOS3D_VECTOR_LEN,)
-
-        z = petsc.readPetscFile(os.path.join(Metos3d_Constants.METOS3D_PATH, 'data', 'data', 'TMM', '2.8', 'Forcing', 'DomainCondition', 'z.petsc'))
-        dz = petsc.readPetscFile(os.path.join(Metos3d_Constants.METOS3D_PATH, 'data', 'data', 'TMM', '2.8', 'Forcing', 'DomainCondition', 'dz.petsc'))
-        landSeaMask = petsc.readPetscMatrix(os.path.join(Metos3d_Constants.METOS3D_PATH, 'data', 'data', 'TMM', '2.8', 'Geometry', 'landSeaMask.petsc'))
-        landSeaMask = landSeaMask.astype(int)
-
-        #Dimensions
-        nx, ny = landSeaMask.shape
-        nz = 15
-        #v3d
-        v3d = np.zeros(shape=(3, nx, ny, nz), dtype=float)
-        v3d[:,:,:,:] = np.nan
-
-        #v1d -> (v3d, z, dz)
-        offset = 0
-        for ix in range(nx):
-            for iy in range(ny):
-                length = landSeaMask[ix, iy]
-                if not length == 0:
-                    v3d[0, ix, iy, 0:length] = v1d[offset:offset+length]
-                    v3d[1, ix, iy, 0:length] = z[offset:offset+length]
-                    v3d[2, ix, iy, 0:length] = dz[offset:offset+length]
-                    offset = offset + length
-
-        return v3d
