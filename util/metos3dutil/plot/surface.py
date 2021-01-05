@@ -8,7 +8,7 @@ import metos3dutil.metos3d.constants as Metos3d_Constants
 from metos3dutil.plot.surfaceplot import SurfacePlot
 
 
-def plotSurface(v1d, filename, depth=0, projection='robin', orientation='gmd', fontsize=8, plotSurface=True, plotSlice=False, slicenum=None):
+def plotSurface(v1d, filename, depth=0, projection='robin', orientation='gmd', fontsize=8, plotSurface=True, plotSlice=False, slicenum=None, vmin=None, vmax=None):
     """
     Plot the tracer concentration
     @auhtor: Markus Pfeil
@@ -21,6 +21,9 @@ def plotSurface(v1d, filename, depth=0, projection='robin', orientation='gmd', f
     assert type(plotSurface) is bool
     assert type(plotSlice) is bool
     assert slicenum is None or (type(slicenum) is list)
+    assert vmin is None or type(vmin) is float
+    assert vmax is None or type(vmax) is float
+    assert vmin is None or vmax is None or vmin < vmax
 
     surface = SurfacePlot(orientation=orientation, fontsize=fontsize)
 
@@ -31,7 +34,9 @@ def plotSurface(v1d, filename, depth=0, projection='robin', orientation='gmd', f
     #Plot the surface concentration
     if plotSurface:
         meridians = None if slicenum is None else [np.mod(Metos3d_Constants.METOS3D_GRID_LONGITUDE * x, 360) for x in slicenum]
-        cntr = surface.plot_surface(v1d, depth=depth, projection=projection, levels=50, vmin=0.0, vmax=0.002, ticks=plt.LinearLocator(6), format='%.1e', pad=0.05, extend='max', clim=(0.0,0.002), meridians=meridians, colorbar=False)
+        cntr = surface.plot_surface(v1d, depth=depth, projection=projection, levels=50, vmin=vmin, vmax=vmax, ticks=plt.LinearLocator(6), format='%.1e', pad=0.05, extend='max', meridians=meridians, colorbar=False)
+        #cntr = surface.plot_surface(v1d, depth=depth, projection=projection, levels=50, vmin=0.0, vmax=0.002, ticks=plt.LinearLocator(6), format='%.1e', pad=0.05, extend='max', clim=(0.0,0.002), meridians=meridians, colorbar=False)
+        #cntr = surface.plot_surface(v1d, depth=depth, projection=projection, levels=50, ticks=plt.LinearLocator(6), format='%.1e', pad=0.05, extend='max', clim=(0.0,3.00), meridians=meridians, colorbar=False)
 
         #Set subplot for the slice plot
         if plotSlice:
@@ -47,7 +52,7 @@ def plotSurface(v1d, filename, depth=0, projection='robin', orientation='gmd', f
 
     #Add the colorbar
     plt.tight_layout(pad=0.05, w_pad=0.15)
-    cbar = surface._fig.colorbar(cntr, ax=surface._axes[0], format='%.1e', ticks=plt.LinearLocator(5), pad=0.02, aspect=40, extend='max', orientation='horizontal', shrink=0.8)
+    cbar = surface._fig.colorbar(cntr, ax=surface._axes, format='%.1e', ticks=plt.LinearLocator(5), pad=0.02, aspect=40, extend='max', orientation='horizontal', shrink=0.8)
 
     surface.savefig(filename)
     surface.close_fig()

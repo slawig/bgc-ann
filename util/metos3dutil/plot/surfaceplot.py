@@ -99,7 +99,7 @@ class SurfacePlot(Plot):
                 m.drawmeridians(meridians, linewidth=linewidth, dashes=[10,10])
 
             xFine, yFine = m(lonsFine, latsFine)
-            cntr = m.contourf(xFine, yFine, vFineMask, cmap=self._cmap, levels=levels, origin="lower", extend=extend, vmin=clim[0], vmax=clim[1])
+            cntr = m.contourf(xFine, yFine, vFineMask, cmap=self._cmap, levels=levels, origin="lower", extend=extend, vmin=vmin, vmax=vmax)
 
             if colorbar:
                 cbar = m.colorbar(cntr, location='bottom', format=format, ticks=ticks, pad=pad, extend=extend, extendfrac=extendfrac, shrink=0.5)
