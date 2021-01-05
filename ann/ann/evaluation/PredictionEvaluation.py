@@ -130,6 +130,8 @@ class PredictionEvaluation(AbstractClassEvaluation):
         metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = self._queue, cores = self._cores)
         metos3d.setTrajectoryParameter(trajectoryYear=self._trajectoryYear)
         metos3d.setInputDir(self._simulationPath)
+        if self._spinupTolerance:
+            metos3d.setTolerance(self._tolerance)
         metos3d.run()
         
         if self._spinupTolerance:

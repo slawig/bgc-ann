@@ -10,11 +10,12 @@ import threading
 
 import ann.network.constants as ANN_Constants
 from ann.database.access import Ann_Database
+from ann.evaluation.AbstractClassData import AbstractClassData
 import metos3dutil.metos3d.constants as Metos3d_Constants
 import metos3dutil.petsc.petscfile as petsc
 
 
-class AbstractClassEvaluation(ABC):
+class AbstractClassEvaluation(AbstractClassData):
     """
     Abstract class for the evaluation of an ANN.
     @author: Markus Pfeil
@@ -31,17 +32,9 @@ class AbstractClassEvaluation(ABC):
         assert tolerance is None or (type(tolerance) is float and tolerance > 0)
         assert type(spinupToleranceReference) is bool and ((not spinupToleranceReference) or (spinupToleranceReference and tolerance > 0))
 
-        #Logging
-        self.queue = mp.Queue()
-        self.logger = logging.getLogger(__name__)
-        self.lp = threading.Thread(target=self.logger_thread)
-
-        #Database
-        self._annDatabase = Ann_Database()
+        AbstractClassData.__init__(self, annId)
 
         #Artificial neural network
-        self._annId = annId
-        self._getAnnConfig()
         self._massAdjustment = massAdjustment
         self._tolerance = tolerance if (tolerance is not None) else 0.0
         self._spinupTolerance = True if (tolerance is not None) else False
@@ -49,39 +42,9 @@ class AbstractClassEvaluation(ABC):
 
         #Metos3dModel
         self._parameterId = parameterId
-        self._timestep = 1
 
         self._simulationPath = self._setSimulationPath()
  
-
-    def logger_thread(self):
-        """
-        Logging for multiprocessing.
-        @author: Markus Pfeil
-        """
-        while True:
-            record = self.queue.get()
-            if record is None:
-                break
-            logger = logging.getLogger(record.name)
-            logger.handle(record)
-
-
-    def close_DB_connection(self):
-        """
-        Close the database connection.
-        @author: Markus Pfeil
-        """
-        self._annDatabase.close_connection()
-
-
-    def _getAnnConfig(self):
-        """
-        Read the configuration if the ANN from the database.
-        @author: Markus Pfeil
-        """
-        self._annType, self._annNumber, self._model, self._annConverseMass = self._annDatabase.get_annTypeNumberModelMass(self._annId)
-
 
     def _getModelParameter(self):
         """

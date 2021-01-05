@@ -148,5 +148,5 @@ class ANN_Evaluation(JobAdministration):
 
 
 if __name__ == '__main__':
-    main()
+    main(annIdList=[238], queue='clmedium')
 
