@@ -5,14 +5,14 @@ import os
 import numpy as np
 import logging
 
-from metos3dutil.database.AbstractClassDatabase import AbstractClassDatabase
+from metos3dutil.database.DatabaseMetos3d import DatabaseMetos3d
 import ann.network.constants as ANN_Constants
 import ann.database.constants as ANN_DB_Constants
 import metos3dutil.database.constants as DB_Constants
 import metos3dutil.metos3d.constants as Metos3d_Constants
 
 
-class Ann_Database(AbstractClassDatabase):
+class Ann_Database(DatabaseMetos3d):
     """
     Class for the database access.
     @author: Markus Pfeil
@@ -26,7 +26,7 @@ class Ann_Database(AbstractClassDatabase):
         assert os.path.exists(dbpath) and os.path.isfile(dbpath)
         assert type(completeTable) is bool
 
-        AbstractClassDatabase.__init__(self, dbpath, completeTable=completeTable)
+        DatabaseMetos3d.__init__(self, dbpath, completeTable=completeTable)
 
 
     def get_concentrationId_annValues(self, annId):
