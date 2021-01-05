@@ -13,7 +13,7 @@ TIME_SLEEP = 120
 DEFAULT_QUEUE = 'clmedium'
 DEFAULT_CORES = 2
 DEFAULT_MEMORY = 20
-DEFAULT_PYTHONPATH = '/sfs/fs5/home-sh/sunip350/Python/bgc-ann/util:/sfs/fs5/home-sh/sunip350/Python/bgc-ann/ann:/sfs/fs5/home-sh/sunip350/Python/bgc-ann/ArtificialNeuralNetwork'
+DEFAULT_PYTHONPATH = '/sfs/fs5/home-sh/sunip350/Python/bgc-ann/util:/sfs/fs5/home-sh/sunip350/Python/bgc-ann/ann:/sfs/fs5/home-sh/sunip350/Python/bgc-ann/sbo:/sfs/fs5/home-sh/sunip350/Python/bgc-ann/ArtificialNeuralNetwork:/sfs/fs5/home-sh/sunip350/Python/bgc-ann/SurrogateBasedOptimization'
 PROGRAMM_PATH = '/sfs/fs5/home-sh/sunip350/Python/bgc-ann/ArtificialNeuralNetwork'
 PYTHON_PATH = '/sfs/fs5/home-sh/sunip350/Python/bgc-ann'
 
