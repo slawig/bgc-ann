@@ -9,7 +9,6 @@ import os
 import threading
 
 import ann.network.constants as ANN_Constants
-from ann.database.access import Ann_Database
 from ann.evaluation.AbstractClassData import AbstractClassData
 import metos3dutil.metos3d.constants as Metos3d_Constants
 import metos3dutil.petsc.petscfile as petsc
