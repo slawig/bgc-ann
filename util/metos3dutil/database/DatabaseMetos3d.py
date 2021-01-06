@@ -149,6 +149,18 @@ class DatabaseMetos3d(AbstractClassDatabaseMetos3d):
         self._conn.commit()
 
 
+    def delete_spinup(self, simulationId):
+        """
+        Delete the datasets in the spinup table for the given simulationId.
+        @author: Markus Pfeil
+        """
+        assert type(simulationId) is int and simulationId >= 0
+
+        sqlcommand = 'DELETE FROM Spinup WHERE simulationId = ?'
+        self._c.execute(sqlcommand, (simulationId,))
+        self._conn.commit()
+
+
     def check_tracer_norm(self, simulationId, expectedCount, norm='2', trajectory=''):
         """
         Check the number of entries in the table of the tracer with the given norm for the given simulationId
@@ -205,6 +217,20 @@ class DatabaseMetos3d(AbstractClassDatabaseMetos3d):
         purchases = []
         purchases.append((simulationId, year, tracer, N, DOP, P, Z, D))
         self._c.executemany('INSERT INTO Tracer{}{}Norm VALUES (?,?,?,?,?,?,?,?)'.format(trajectory, norm), purchases)
+        self._conn.commit()
+
+
+    def delete_tracer_norm(self, simulationId, norm='2', trajectory=''):
+        """
+        Delete the tracer norm datasets for the given simulationId.
+        @author: Markus Pfeil
+        """
+        assert type(simulationId) is int and simulationId >= 0
+        assert norm in DB_Constants.NORM
+        assert trajectory in ['', 'Trajectory']
+
+        sqlcommand = 'DELETE FROM Tracer{}{}Norm WHERE simulationId = ?'.format(trajectory, norm) 
+        self._c.execute(sqlcommand, (simulationId,))
         self._conn.commit()
 
 
@@ -267,6 +293,20 @@ class DatabaseMetos3d(AbstractClassDatabaseMetos3d):
         purchases = []
         purchases.append((simulationIdA, simulationIdB, yearA, yearB, tracerDifferenceNorm, N, DOP, P, Z, D))
         self._c.executemany('INSERT INTO TracerDifference{}{}Norm VALUES (?,?,?,?,?,?,?,?,?,?)'.format(trajectory, norm), purchases)
+        self._conn.commit()
+
+
+    def delete_difference_tracer_norm(self, simulationIdA, norm='2', trajectory=''):
+        """
+        Delete the datasets of the norm of a difference between two tracers for the given simulationId.
+        @author: Markus Pfeil
+        """
+        assert type(simulationIdA) is int and simulationIdA >= 0
+        assert norm in DB_Constants.NORM
+        assert trajectory in ['', 'Trajectory']
+
+        sqlcommand = 'DELETE FROM TracerDifference{}{}Norm WHERE simulationIdA = ?'.format(trajectory, norm)
+        self._c.execute(sqlcommand, (simulationIdA,))
         self._conn.commit()
 
 

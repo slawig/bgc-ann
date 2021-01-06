@@ -229,6 +229,18 @@ class Ann_Database(DatabaseMetos3d):
         self._conn.commit()
 
 
+    def delete_mass(self, simulationId):
+        """
+        Delete the data sets of the mass values for the given simulationId.
+        @author: Markus Pfeil
+        """
+        assert type(simulationId) is int and simulationId >= 0
+
+        sqlcommand = 'DELETE FROM Mass WHERE simulationId = ?'
+        self._c.execute(sqlcommand, (simulationId, ))
+        self._conn.commit()
+
+
     def check_tracer_deviation(self, simulationId, expectedCount):
         """
         Check the number of entries of the deviation values with the given simulationId.
@@ -280,6 +292,18 @@ class Ann_Database(DatabaseMetos3d):
         purchases = []
         purchases.append((simulationId, year, N_mean, N_var, N_min, N_max, N_negative_count, N_negative_sum, DOP_mean, DOP_var, DOP_min, DOP_max, DOP_negative_count, DOP_negative_sum, P_mean, P_var, P_min, P_max, P_negative_count, P_negative_sum, Z_mean, Z_var, Z_min, Z_max, Z_negative_count, Z_negative_sum, D_mean, D_var, D_min, D_max, D_negative_count, D_negative_sum))
         self._c.executemany('INSERT INTO DeviationTracer VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', purchases)
+        self._conn.commit()
+
+
+    def delete_deviation_tracer(self, simulationId):
+        """
+        Delete deviation data sets for the given simulationId.
+        @author: Markus Pfeil
+        """
+        assert type(simulationId) is int and simulationId >= 0
+
+        sqlcommand = 'DELETE FROM DeviationTracer WHERE simulationId = ?'
+        self._c.execute(sqlcommand, (simulationId, ))
         self._conn.commit()
 
 
@@ -337,6 +361,18 @@ class Ann_Database(DatabaseMetos3d):
         purchases = []
         purchases.append((simulationIdA, simulationIdB, yearA, yearB, N_mean, N_var, N_min, N_max, N_negative_count, N_negative_sum, DOP_mean, DOP_var, DOP_min, DOP_max, DOP_negative_count, DOP_negative_sum, P_mean, P_var, P_min, P_max, P_negative_count, P_negative_sum, Z_mean, Z_var, Z_min, Z_max, Z_negative_count, Z_negative_sum, D_mean, D_var, D_min, D_max, D_negative_count, D_negative_sum))
         self._c.executemany('INSERT INTO DeviationTracerDifference VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', purchases)
+        self._conn.commit()
+
+
+    def delete_difference_tracer_deviation(self, simulationIdA):
+        """
+        Delete data sets of the deviation for the difference tracer values for the given simulationId.
+        @author: Markus Pfeil
+        """
+        assert type(simulationIdA) is int and simulationIdA >= 0
+
+        sqlcommand = 'DELETE FROM DeviationTracerDifference WHERE simulationIdA = ?'
+        self._c.execute(sqlcommand, (simulationIdA, ))
         self._conn.commit()
 
 
