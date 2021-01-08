@@ -103,8 +103,8 @@ class SimulationDataBackupEvaluation(AbstractClassData):
         assert simulationPath is not None
         assert parameterId in range(0, ANN_Constants.PARAMETERID_MAX+1)
         assert type(massAdjustment) is bool
-        assert tolerance is None or tolerance >= 0
-        assert cpunum > 0
+        assert tolerance is None or type(tolerance) is float and tolerance >= 0
+        assert type(cpunum) is int and cpunum > 0
 
         trajectoryYear = 50 if (tolerance is not None) else 10
         lastYear = 10000 if (tolerance is not None) else 1000
@@ -119,7 +119,8 @@ class SimulationDataBackupEvaluation(AbstractClassData):
         #Check the logfile
         logfileName = Evaluation_Constants.PATTERN_LOGFILE.format(self._annType, self._model, self._annId, parameterId, massAdjustment, tolerance if tolerance is not None else 0, cpunum)
         logfilePath = os.path.join(self._pathPrediction, 'Logfile', logfileName)
-        check = check and os.path.exists(logfilePath) and os.path.isfile(logfilePath)
+        logfilePathSimulation = os.path.join(simulationPath, logfileName)
+        check = check and (os.path.exists(logfilePath) and os.path.isfile(logfilePath) or os.path.exists(logfilePathSimulation) and os.path.isfile(logfilePathSimulation))
         if not check:
             logging.warning('Logfile does not exist: {}\n\n'.format(logfilePath))
 
@@ -155,7 +156,7 @@ class SimulationDataBackupEvaluation(AbstractClassData):
             logging.warning('SimulationPath does not exist: {}'.format(simulationPath))
 
         #Copy the logfile into the simulation path
-        if check:
+        if check and not (os.path.exists(logfilePathSimulation) and os.path.isfile(logfilePathSimulation)):
             shutil.copy2(logfilePath, os.path.join(simulationPath, logfileName))
 
         return check
@@ -259,4 +260,228 @@ class SimulationDataBackupEvaluation(AbstractClassData):
         if movetar:
             shutil.move(tarfilename, os.path.join(Evaluation_Constants.PATH_BACKUP, Evaluation_Constants.PATTERN_BACKUP_FILENAME.format(self._annId, Evaluation_Constants.COMPRESSION)))
         os.chdir(act_path)
+
+
+    def restore(self, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), movetar=False, restoreAnn=True, restoreLogfile=True, restoreJoboutput=True, restorePrediction=True, restoreTracerOnestep=True):
+        """
+        Restore the simulation data from the backup.
+        @author: Markus Pfeil
+        """
+        assert type(movetar) is bool
+        assert type(parameterIdList) is list
+        assert type(restoreAnn) is bool
+        assert type(restoreLogfile) is bool
+        assert type(restoreJoboutput) is bool
+        assert type(restorePrediction) is bool
+        assert type(restoreTracerOnestep) is bool
+
+        act_path = os.getcwd()
+        os.chdir(self._path)
+
+        tarfilename = os.path.join(self._pathTarfile, Evaluation_Constants.PATTERN_BACKUP_FILENAME.format(self._annId, Evaluation_Constants.COMPRESSION))
+
+        #Copy backup file
+        if not os.path.exists(tarfilename) and movetar:
+            shutil.move(os.path.join(Evaluation_Constants.PATH_BACKUP, Evaluation_Constants.PATTERN_BACKUP_FILENAME.format(self._annId, Evaluation_Constants.COMPRESSION)), tarfilename)
+
+        assert os.path.exists(tarfilename)
+        tar = tarfile.open(tarfilename, 'w:{}'.format(Evaluation_Constants.COMPRESSION), compresslevel=Evaluation_Constants.COMPRESSLEVEL)
+
+        os.makedirs(self._path, exist_ok=True)
+
+        #Restore the ann
+        if restoreAnn:
+            for annFile in self._annFilenameList:
+                annFilename = os.path.basename(annFile)
+                try:
+                    tar.extract(annFilename, path=self._path)
+                except (tarfile.TarError, KeyError):
+                    logging.warning('There is not the ann file {} in the archiv\n'.format(annFilename))
+
+        for parameterId in parameterIdList:
+            for (massAdjustment, tolerance, simPath) in self._generateSimPathPostfix(parameterId):
+                os.makedirs(os.path.join(self._path, simPath), exist_ok=True)
+                trajectoryYear = 50 if (tolerance is not None) else 10
+                lastYear = 10001 if (tolerance is not None) else 1001
+                outputFile = os.path.join(simPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME)
+                if tolerance is not None and os.path.exists(outputFile) and os.path.isfile(outputFile):
+                    self._getModelParameter(parameterId)
+                    metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, os.path.join(self._path, simPath))
+                    lastYear = metos3d.lastSpinupYear()
+
+                #Restore the logfile
+                if restoreLogfile:
+                    logfileName = Evaluation_Constants.PATTERN_LOGFILE.format(self._annType, self._model, self._annId, parameterId, massAdjustment, tolerance if tolerance is not None else 0, 64)
+                    logfilePath = os.path.join(simPath, logfileName)
+                    try:
+                        tar.extract(logfilePath, path=self._path)
+                    except (tarfile.TarError, KeyError):
+                        logging.warning('The log file {} is not in the archiv\n'.format(logfilePath))
+
+                #Restore the job output
+                if restoreJoboutput:
+                    joboutputFile = os.path.join(simPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME)
+                    try:
+                        tar.extract(joboutputFile, path=self._path)
+                    except (tarfile.TarError, KeyError):
+                        logging.warning('The job output {} is not in the archiv\n'.format(joboutputFile))
+
+                for trac in Metos3d_Constants.METOS3D_MODEL_TRACER[self._model]:
+                    #Restore the prediction to the data backup
+                    if restorePrediction:
+                        predictionFile = os.path.join(simPath, Metos3d_Constants.PATTERN_TRACER_INPUT.format(trac))
+                        try:
+                            tar.extract(predictionFile, path=self._path)
+                        except (tarfile.TarError, KeyError):
+                            logging.warning('The prediction file {} is not in the archiv\n'.format(predictionFile))
+
+                    for end in ['', '.info']:
+                        #Restore the tracer
+                        if restoreTracer:
+                            os.makedirs(os.path.join(self._path, simPath, 'Tracer'), exist_ok=True)
+                            tracerFilename = os.path.join(simPath, 'Tracer', '{}{}'.format(Metos3d_Constants.PATTERN_TRACER_OUTPUT.format(trac), end))
+                            try:
+                                tar.extract(tracerFilename, path=self._path)
+                            except (tarfile.TarError, KeyError):
+                                logging.warning('The tracer file {} is not in the archiv\n'.format(tracerFilename))
+
+                        #Restore the tracer of the one steps
+                        if restoreTracerOnestep:
+                            for year in range(trajectoryYear, lastYear, trajectoryYear):
+                                tracerFilename = os.path.join(simPath, 'TracerOnestep', '{}{}'.format(Metos3d_Constants.PATTERN_TRACER_OUTPUT_YEAR.format(year, trac), end))
+                                try:
+                                    tar.extract(tracerFilename, path=self._path)
+                                except (tarfile.TarError, KeyError):
+                                    logging.warning('The tracer file {} is not in the archiv\n'.format(tracerFilename))
+
+        tar.close()
+        os.chdir(act_path)
+
+        #Remove tarfile
+        if movetar:
+            os.remove(tarfilename)
+
+
+    def remove(self, movetar=False):
+        """
+        Remove the simulation data.
+        @author: Markus Pfeil
+        """
+        assert type(movetar) is bool
+
+        tarfilename = os.path.join(self._pathTarfile, Evaluation_Constants.PATTERN_BACKUP_FILENAME.format(self._annId, Evaluation_Constants.COMPRESSION))
+
+        #Copy backup file
+        if not os.path.exists(tarfilename) and movetar:
+            shutil.move(os.path.join(Evaluation_Constants.PATH_BACKUP, Evaluation_Constants.PATTERN_BACKUP_FILENAME.format(self._annId, Evaluation_Constants.COMPRESSION)), tarfilename)
+
+        assert os.path.exists(tarfilename)
+        tar = tarfile.open(tarfilename, 'w:{}'.format(Evaluation_Constants.COMPRESSION), compresslevel=Evaluation_Constants.COMPRESSLEVEL)
+       
+        #Remove the files of the ANN
+        for annFile in self._annFilenameList:
+            annFilename = os.path.basename(annFile)
+            if os.path.exists(os.path.join(self._path, annFilename)) and os.path.isfile(os.path.join(self._path, annFilename)):
+                try:
+                    info = tar.getmember(annFilename)
+                except KeyError:
+                    logging.warning('There is not the file {} of the ANN in the archiv'.format(annFilename))
+                else:
+                    if info.isfile() and info.size > 0 and os.path.exists(os.path.join(self._path, annFilename)) and os.path.isfile(os.path.join(self._path, annFilename)):
+                        os.remove(os.path.join(self._path, annFilename))
+
+        for parameterId in range(0, ANN_Constants.PARAMETERID_MAX_TEST+1):
+            for (massAdjustment, tolerance, simPath) in self._generateSimPathPostfix(parameterId):
+                if os.path.exists(simPath) and os.path.isdir(simPath):
+                    trajectoryYear = 50 if (tolerance is not None) else 10
+                    lastYear = 10001 if (tolerance is not None) else 1001
+                    outputFile = os.path.join(simPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME)
+                    if tolerance is not None and os.path.exists(outputFile) and os.path.isfile(outputFile):
+                        self._getModelParameter(parameterId)
+                        metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, os.path.join(self._path, simPath))
+                        lastYear = metos3d.lastSpinupYear()
+
+                    #Remove the logfile
+                    logfileName = Evaluation_Constants.PATTERN_LOGFILE.format(self._annType, self._model, self._annId, parameterId, massAdjustment, tolerance if tolerance is not None else 0, 64)
+                    logfilePath = os.path.join(simPath, logfileName)
+                    if os.path.exists(os.path.join(self._path, logfilePath)) and os.path.isfile(os.path.join(self._path, logfilePath)):
+                        try:
+                            info = tar.getmember(logfilePath)
+                        except KeyError:
+                            logging.warning('There is not the logfile {} in the archiv\n'.format(logfilePath))
+                        else:
+                            if info.isfile() and info.size > 0:
+                                os.remove(os.path.join(self._path, logfilePath))
+                            if info.isfile() and info.size > 0 and os.path.exists(os.path.join(self._pathPrediction, 'Logfile', logfileName)) and os.path.isfile(os.path.join(self._pathPrediction, 'Logfile', logfileName)):
+                                os.remove(os.path.join(self._pathPrediction, 'Logfile', logfileName))
+
+                    #Remove the job output
+                    joboutputFile = os.path.join(simPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME)
+                    if os.path.exists(os.path.join(self._path, joboutputFile)) and os.path.isfile(os.path.join(self._path, joboutputFile)):
+                        try:
+                            info = tar.getmember(joboutputFile)
+                        except KeyError:
+                            logging.warning('There is not the job output file {} in the archiv\n'.format(joboutputFile))
+                        else:
+                            if info.isfile() and info.size > 0:
+                                os.remove(os.path.join(self._path, joboutputFile))
+
+                    for trac in Metos3d_Constants.METOS3D_MODEL_TRACER[self._model]:
+                        #Remove the prediction
+                        predictionFile = os.path.join(simPath, Metos3d_Constants.PATTERN_TRACER_INPUT.format(trac))
+                        if os.path.exists(os.path.join(self._path, predictionFile)) and os.path.isfile(os.path.join(self._path, predictionFile)):
+                            try:
+                                info = tar.getmember(predictionFile)
+                            except KeyError:
+                                logging.warning('File {} not in the archiv\n'.format(predictionFile))
+                            else:
+                                if info.isfile() and info.size > 0:
+                                    os.remove(os.path.join(self._path, predictionFile))
+
+                        for end in ['', '.info']:
+                            #Remove the tracer
+                            tracerFilename = os.path.join(simPath, 'Tracer', '{}{}'.format(Metos3d_Constants.PATTERN_TRACER_OUTPUT.format(trac), end))
+                            if os.path.exists(os.path.join(self._path, tracerFilename)) and os.path.isfile(os.path.join(self._path, tracerFilename)):
+                                try:
+                                    info = tar.getmember(tracerFilename)
+                                except KeyError:
+                                    logging.warning('File {} not in the archiv\n'.format(tracerFilename))
+                                else:
+                                    if info.isfile() and info.size > 0:
+                                        os.remove(os.path.join(self._path, tracerFilename))
+
+                            #Remove the tracer of the one step
+                            for year in range(trajectoryYear, lastYear, trajectoryYear):
+                                tracerFilename = os.path.join(simPath, 'TracerOnestep', '{}{}'.format(Metos3d_Constants.PATTERN_TRACER_OUTPUT_YEAR.format(year, trac), end))
+                                if os.path.exists(os.path.join(self._path, tracerFilename)) and os.path.isfile(os.path.join(self._path, tracerFilename)):
+                                    try:
+                                        info = tar.getmember(tracerFilename)
+                                    except KeyError:
+                                        logging.warning('File {} not in the archiv\n'.format(tracerFilename))
+                                    else:
+                                        if info.isfile() and info.size > 0:
+                                            os.remove(os.path.join(self._path, tracerFilename))
+                    #Remove the directories
+                    try:
+                        for directory in ['Optionfile', 'Tracer', 'TracerOnestep']:
+                            directoryPath = os.path.join(self._path, simPath, directory)
+                            if os.path.exists(directoryPath) and os.path.isdir(directoryPath) and not os.listdir(directoryPath):
+                                os.rmdir(directoryPath)
+
+                        directoryPath = simPath
+                        while (directoryPath != '' and os.path.exists(os.path.join(self._path, directoryPath)) and os.path.isdir(os.path.join(self._path, directoryPath))):
+                            if not os.listdir(os.path.join(self._path, directoryPath)):
+                                os.rmdir(os.path.join(self._path, directoryPath))
+                                directoryPath = os.path.dirname(directoryPath)
+                            else:
+                                break
+                    except OSError as ex:
+                        if ex.errno == errno.ENOTEMPTY:
+                            logging.warning('Directory {} is not empty'.format(directoryPath))
+
+        tar.close()
+
+        #Remove tarfile
+        if movetar:
+            os.remove(tarfilename)
 
