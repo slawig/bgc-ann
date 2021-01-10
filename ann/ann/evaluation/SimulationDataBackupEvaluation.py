@@ -285,7 +285,7 @@ class SimulationDataBackupEvaluation(AbstractClassData):
             shutil.move(os.path.join(Evaluation_Constants.PATH_BACKUP, Evaluation_Constants.PATTERN_BACKUP_FILENAME.format(self._annId, Evaluation_Constants.COMPRESSION)), tarfilename)
 
         assert os.path.exists(tarfilename)
-        tar = tarfile.open(tarfilename, 'w:{}'.format(Evaluation_Constants.COMPRESSION), compresslevel=Evaluation_Constants.COMPRESSLEVEL)
+        tar = tarfile.open(tarfilename, 'r:{}'.format(Evaluation_Constants.COMPRESSION), compresslevel=Evaluation_Constants.COMPRESSLEVEL)
 
         os.makedirs(self._path, exist_ok=True)
 
@@ -376,7 +376,7 @@ class SimulationDataBackupEvaluation(AbstractClassData):
             shutil.move(os.path.join(Evaluation_Constants.PATH_BACKUP, Evaluation_Constants.PATTERN_BACKUP_FILENAME.format(self._annId, Evaluation_Constants.COMPRESSION)), tarfilename)
 
         assert os.path.exists(tarfilename)
-        tar = tarfile.open(tarfilename, 'w:{}'.format(Evaluation_Constants.COMPRESSION), compresslevel=Evaluation_Constants.COMPRESSLEVEL)
+        tar = tarfile.open(tarfilename, 'r:{}'.format(Evaluation_Constants.COMPRESSION), compresslevel=Evaluation_Constants.COMPRESSLEVEL)
        
         #Remove the files of the ANN
         for annFile in self._annFilenameList:
@@ -392,11 +392,11 @@ class SimulationDataBackupEvaluation(AbstractClassData):
 
         for parameterId in range(0, ANN_Constants.PARAMETERID_MAX_TEST+1):
             for (massAdjustment, tolerance, simPath) in self._generateSimPathPostfix(parameterId):
-                if os.path.exists(simPath) and os.path.isdir(simPath):
+                if os.path.exists(os.path.join(self._path, simPath)) and os.path.isdir(os.path.join(self._path, simPath)):
                     trajectoryYear = 50 if (tolerance is not None) else 10
                     lastYear = 10001 if (tolerance is not None) else 1001
                     outputFile = os.path.join(simPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME)
-                    if tolerance is not None and os.path.exists(outputFile) and os.path.isfile(outputFile):
+                    if tolerance is not None and os.path.exists(os.path.join(self._path, outputFile)) and os.path.isfile(os.path.join(self._path, outputFile)):
                         self._getModelParameter(parameterId)
                         metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, os.path.join(self._path, simPath))
                         lastYear = metos3d.lastSpinupYear()
@@ -478,6 +478,14 @@ class SimulationDataBackupEvaluation(AbstractClassData):
                     except OSError as ex:
                         if ex.errno == errno.ENOTEMPTY:
                             logging.warning('Directory {} is not empty'.format(directoryPath))
+
+        #Remove directory
+        try:
+            if not os.listdir(self._path):
+                os.rmdir(self._path)
+        except OSError as ex:
+            if ex.errno == errno.ENOTEMPTY:
+                logging.warning('Directory {} is not empty'.format(directoryPath))
 
         tar.close()
 
