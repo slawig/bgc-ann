@@ -3,12 +3,13 @@
 
 import os
 import metos3dutil.latinHypercubeSample.constants as LHS_Constants
+from system.system import DATA_PATH, FIGURE_PATH
 
-PATH = '/sfs/fs2/work-sh1/sunip350/metos3d/ArtificialNeuralNetwork'
+
+PATH = os.path.join(DATA_PATH, 'ArtificialNeuralNetwork')
+PATH_LHS = os.path.join(DATA_PATH, 'LatinHypercubeSample')
 PATH_TRACER = os.path.join(PATH, 'Tracer')
-PATH_LHS = '/sfs/fs2/work-sh1/sunip350/metos3d/LatinHypercubeSample'
-PATH_METOS3D = '/sfs/fs5/home-sh/sunip350/.metos3d'
-PATH_FIGURE = '/sfs/fs5/home-sh/sunip350/Daten/Figures'
+PATH_FIGURE = FIGURE_PATH
 
 
 # Path of the neural networks using the set algorithm

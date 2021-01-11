@@ -13,7 +13,7 @@ import re
 import shutil
 import tarfile
 
-import neshCluster.constants as NeshCluster_Constants
+from system.system import PYTHON_PATH
 from neshCluster.JobAdministration import JobAdministration
 import metos3dutil.metos3d.constants as Metos3d_Constants
 import ann.network.constants as ANN_Constants
@@ -487,7 +487,7 @@ class AbstractClassGeneticAlgorithm(ABC, JobAdministration):
                 jobDict['jobFilename'] = os.path.join(self._pathGA, GA_Constants.PATTERN_JOBFILE_TRANING_GENOME.format(self._gid, genome.getGeneration(), genome.getUId()))
                 jobDict['jobname'] = 'GA_{}_{}_TrainingGenome'.format(self._gid, genome.getUId())
                 jobDict['joboutput'] = os.path.join(pathLogs, GA_Constants.PATTERN_JOBOUTPUT_TRANING_GENOME.format(self._gid, genome.getGeneration(), genome.getUId()))
-                jobDict['programm'] = os.path.join(NeshCluster_Constants.PYTHON_PATH, 'ann', 'ann', 'geneticAlgorithm', programm)
+                jobDict['programm'] = os.path.join(PYTHON_PATH, 'ann', 'ann', 'geneticAlgorithm', programm)
                 jobDict['queue'] = queue
                 jobDict['memory'] = 30
                 jobDict['cores'] = 1

@@ -2,13 +2,16 @@
 # -*- coding: utf8 -*
 
 import os
+from system.system import DATA_PATH, PYTHON_PATH, BACKUP_PATH, FIGURE_PATH
 
+PATH = os.path.join(DATA_PATH, 'SurrogateBasedOptimization')
+PROGRAMM_PATH = os.path.join(PYTHON_PATH, 'SurrogateBasedOptimization')
+PATH_BACKUP = os.path.join(BACKUP_PATH, 'SurrogateBasedOptimization', 'Optimization')
+PATH_FIGURE = os.path.join(FIGURE_PATH, 'SurrogateBasedOptimization')
 
-PATH = os.path.join('/sfs', 'fs2' , 'work-sh1', 'sunip350', 'metos3d', 'SurrogateBasedOptimization')
-PROGRAMM_PATH = os.path.join('/sfs', 'fs5', 'home-sh', 'sunip350', 'Python', 'bgc-ann', 'SurrogateBasedOptimization')
-PATH_BACKUP = os.path.join('/nfs', 'tape_cache', 'sunip350', 'Daten', 'metos3d', 'SurrogateBasedOptimization', 'Optimization')
 DB_PATH = os.path.join(PATH, 'Database', 'SBO_Database.db')
 DB_PATH_REORG = os.path.join(PATH, 'Database', 'SBO_Database_reorg.db')
+
 PATH_OPTIMIZATION = 'SBO_{:0>4d}'
 PATH_ITERATION = 'Iteration_{:0>4d}'
 PATH_HIGH_FIDELITY_MODEL = 'HighFidelityModel'
@@ -24,8 +27,6 @@ OPTIMIZATION_METHODS = ['L-BFGS-B']
 
 ANNID_MAX = 1
 
-
-PATH_FIGURE = os.path.join('/sfs', 'fs5', 'home-sh', 'sunip350', 'Daten', 'Figures', 'SurrogateBasedOptimization')
 
 PATTERN_FIGURE_COSTFUNCTION = 'Costfunction.{:s}.OptimizationId_{:0>4d}.pdf'
 PATTERN_FIGURE_STEPSIZENORM = 'StepSizeNorm.{:s}.OptimizationId_{:0>4d}.pdf'

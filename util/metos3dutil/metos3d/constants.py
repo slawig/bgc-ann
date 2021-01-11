@@ -3,6 +3,8 @@
 
 import os
 import numpy as np
+import system.system.METOS3D_MODEL_PATH
+
 
 # Metos3d
 METOS3D_VECTOR_LEN = 52749
@@ -48,8 +50,11 @@ METOS3D_MODEL_OUTPUT_LENGTH['NPZ-DOP'] = len(METOS3D_MODEL_TRACER['NPZ-DOP']) * 
 METOS3D_MODEL_OUTPUT_LENGTH['NPZD-DOP'] = len(METOS3D_MODEL_TRACER['NPZD-DOP']) * METOS3D_VECTOR_LEN
 METOS3D_MODEL_OUTPUT_LENGTH['MITgcm-PO4-DOP'] = len(METOS3D_MODEL_TRACER['MITgcm-PO4-DOP']) * METOS3D_VECTOR_LEN
 
-METOS3D_PATH = os.path.join('/sfs', 'fs5', 'home-sh', 'sunip350', '.metos3d')
-METOS3D_MODEL_PATH = os.path.join('/sfs', 'fs2', 'work-sh1', 'sunip350', 'metos3d')
+try:
+    METOS3D_PATH = os.environ['METOS3D_DIR']
+except KeyError:
+    METOS3D_PATH = ''
+METOS3D_MODEL_PATH = system.system.METOS3D_MODEL_PATH
 PATTERN_MODEL_FILENAME = 'metos3d-simpack-{}.exe'
 
 PATTERN_OPTIONFILE = 'nesh_metos3d_options_{:s}_{:d}dt.txt'

@@ -426,7 +426,7 @@ class SET_MLP(ANN):
             self._losses_per_epoch[metric] = np.asarray(self._losses_per_epoch[metric])
 
 
-    def _readBoxVolumes(self, path=os.path.join(ANN_Constants.PATH_METOS3D, 'data/data/TMM/2.8/Geometry/normalizedVolumes.petsc'), tracer_length=Metos3d_Constants.METOS3D_VECTOR_LEN):
+    def _readBoxVolumes(self, path=os.path.join(Metos3d_Constants.METOS3D_PATH, 'data', 'data', 'TMM', '2.8', 'Geometry', 'normalizedVolumes.petsc'), tracer_length=Metos3d_Constants.METOS3D_VECTOR_LEN):
         """
         Read volumes of the boxes
         @author: Markus Pfeil
