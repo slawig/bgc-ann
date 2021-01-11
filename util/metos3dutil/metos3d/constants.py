@@ -3,7 +3,8 @@
 
 import os
 import numpy as np
-import system.system.METOS3D_MODEL_PATH
+
+import system.system
 
 
 # Metos3d

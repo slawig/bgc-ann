@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*
 
+import os
 from system.system import PYTHON_PATH
 
 LHS_PATH = os.path.join(PYTHON_PATH, 'util', 'metos3dutil', 'latinHypercubeSample')
