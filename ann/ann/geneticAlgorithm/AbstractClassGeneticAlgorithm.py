@@ -523,11 +523,11 @@ class AbstractClassGeneticAlgorithm(ABC, JobAdministration):
         assert type(jobDict) is dict
 
         if not self._checkAnn(jobDict['genomeUid'], jobDict['generation']):
-            if jobDict['queue'] == 'clmedium':
+            if jobDict['queue'] == 'clmedium' and SYSTEM != 'PC':
                 jobDict['queue'] = 'cllong'
                 self._removeDirectory(jobDict['genomeUid'], jobDict['generation'])
                 self._startJob(jobDict)
-            elif jobDict['queue'] == 'cllong':
+            elif jobDict['queue'] == 'cllong' and SYSTEM != 'PC':
                 jobDict['queue'] = 'clbigmem'
                 self._removeDirectory(jobDict['genomeUid'], jobDict['generation'])
                 self._startJob(jobDict)

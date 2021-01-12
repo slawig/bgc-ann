@@ -41,12 +41,23 @@ class JobAdministration():
         currentPath = os.getcwd()
         
         for jobDict in self._jobList:
-            os.chdir(jobDict['path'])
-            x = subprocess.run(['python3'] + [a for a in jobDict['programm'].split(' ')], stdout=subprocess.PIPE)
-            with open(jobDict['joboutput'], mode='w', encoding='utf-8') as fid:
-                fid.write(x.stdout.decode(encoding='UTF-8'))
+            self.__startJob(jobDict) 
+            self.__evaluateResult(jobDict)
 
         os.chdir(currentPath)
+
+
+    def _startJob(self, jobDict):
+        """
+        Start the job.
+        @author: Markus Pfeil
+        """
+        assert type(jobDict) is dict
+
+        os.chdir(jobDict['path'])
+        x = subprocess.run(['python3'] + [a for a in jobDict['programm'].split(' ')], stdout=subprocess.PIPE)
+        with open(jobDict['joboutput'], mode='w', encoding='utf-8') as fid:
+            fid.write(x.stdout.decode(encoding='UTF-8'))
 
 
     def _evaluateResult(self, jobDict):
