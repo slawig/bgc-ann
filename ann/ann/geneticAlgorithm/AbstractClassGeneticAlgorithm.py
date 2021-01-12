@@ -487,6 +487,7 @@ class AbstractClassGeneticAlgorithm(ABC, JobAdministration):
                     programm = programm + ' -trainingSize {:d}'.format(config["trainingSize"])
 
                 jobDict = {}
+                jobDict['path'] = self._pathGA
                 jobDict['jobFilename'] = os.path.join(self._pathGA, GA_Constants.PATTERN_JOBFILE_TRANING_GENOME.format(self._gid, genome.getGeneration(), genome.getUId()))
                 jobDict['jobname'] = 'GA_{}_{}_TrainingGenome'.format(self._gid, genome.getUId())
                 jobDict['joboutput'] = os.path.join(pathLogs, GA_Constants.PATTERN_JOBOUTPUT_TRANING_GENOME.format(self._gid, genome.getGeneration(), genome.getUId()))

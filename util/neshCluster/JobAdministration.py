@@ -30,6 +30,7 @@ class JobAdministration():
         @author: Markus Pfeil
         """
         assert type(jobDict) is dict
+        assert 'path' in jobDict
         assert 'jobFilename' in jobDict
         assert 'jobname' in jobDict
         assert 'joboutput' in jobDict
@@ -89,7 +90,7 @@ class JobAdministration():
 
         self._writeJobfile(jobDict)
         jobDict['currentPath'] = os.getcwd()
-        os.chdir(os.path.dirname(jobDict['jobFilename']))
+        os.chdir(jobDict['path'])
 
         x = subprocess.run(['qsub', os.path.basename(jobDict['jobFilename'])], stdout=subprocess.PIPE)
         stdout_str = x.stdout.decode(encoding='UTF-8')

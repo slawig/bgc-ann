@@ -25,6 +25,8 @@ class JobAdministration():
         Add a job to the job liste in order to run this job.
         @author: Markus Pfeil
         """
+        assert type(jobDict) is dict
+        assert 'path' in jobDict
         assert 'programm' in jobDict
         assert 'joboutput' in jobDict
 
@@ -36,10 +38,15 @@ class JobAdministration():
         Start the jobs in the job list on the standalone computer.
         @author: Markus Pfeil
         """
+        currentPath = os.getcwd()
+        
         for jobDict in self._jobList:
-            x = subprocess.run(['python3', jobDict['programm']], stdout=subprocess.PIPE)
+            os.chdir(jobDict['path'])
+            x = subprocess.run(['python3'] + [a for a in jobDict['programm'].split(' ')], stdout=subprocess.PIPE)
             with open(jobDict['joboutput'], mode='w', encoding='utf-8') as fid:
                 fid.write(x.stdout.decode(encoding='UTF-8'))
+
+        os.chdir(currentPath)
 
 
     def _evaluateResult(self, jobDict):
