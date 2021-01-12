@@ -416,7 +416,7 @@ class SET_MLP(ANN):
             if epoch == self._SETepoches or len(epoches) == 1:
                 self._model.summary()
             
-            historytemp = self._model.fit_generator(TracerSequence(x_train, y_train, self._batch_size), steps_per_epoch=x_train.shape[0]//self._batch_size, epochs=epoch, validation_data=(x_test, y_test), initial_epoch=initial_epoch)
+            historytemp = self._model.fit(TracerSequence(x_train, y_train, self._batch_size), steps_per_epoch=x_train.shape[0]//self._batch_size, epochs=epoch, validation_data=(x_test, y_test), initial_epoch=initial_epoch)
             
             # Monitoring the training step
             for metric in self._losses_per_epoch:
