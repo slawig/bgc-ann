@@ -6,8 +6,12 @@ import os
 import ann.network.constants as ANN_Constants
 import neshCluster.constants as NeshCluster_Constants
 import ann.evaluation.constants as Evaluation_Constants
-from neshCluster.JobAdministration import JobAdministration
 from ann.database.access import Ann_Database
+from system.system import SYSTEM
+if SYSTEM == 'PC':
+    from standaloneComputer.JobAdministration import JobAdministration
+else:
+    from neshCluster.JobAdministration import JobAdministration
 
 
 def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), queue=NeshCluster_Constants.DEFAULT_QUEUE, cores=NeshCluster_Constants.DEFAULT_CORES):

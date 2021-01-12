@@ -13,8 +13,11 @@ import re
 import shutil
 import tarfile
 
-from system.system import PYTHON_PATH
-from neshCluster.JobAdministration import JobAdministration
+from system.system import SYSTEM, PYTHON_PATH
+if SYSTEM == 'PC':
+    from standaloneComputer.JobAdministration import JobAdministration
+else:
+    from neshCluster.JobAdministration import JobAdministration
 import metos3dutil.metos3d.constants as Metos3d_Constants
 import ann.network.constants as ANN_Constants
 import ann.geneticAlgorithm.constants as GA_Constants

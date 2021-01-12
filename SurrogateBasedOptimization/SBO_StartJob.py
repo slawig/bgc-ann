@@ -4,9 +4,13 @@
 import os
 
 import neshCluster.constants as NeshCluster_Constants
-from neshCluster.JobAdministration import JobAdministration
 from database.SBO_Database import SBO_Database
 import sbo.constants as SBO_Constants
+from system.system import SYSTEM, PYTHON_PATH
+if SYSTEM == 'PC':
+    from standaloneComputer.JobAdministration import JobAdministration
+else:
+    from neshCluster.JobAdministration import JobAdministration
 
 
 def main(optimizationIdList, queue=NeshCluster_Constants.DEFAULT_QUEUE, cores=NeshCluster_Constants.DEFAULT_CORES):
