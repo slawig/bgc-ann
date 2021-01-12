@@ -44,7 +44,7 @@ class MaskWeights(Constraint):
 
 
     def __call__(self, w):
-        w *= K.cast(self.mask, K.floatx())
+        w = w * K.cast(self.mask, K.floatx())
         return w
 
 
