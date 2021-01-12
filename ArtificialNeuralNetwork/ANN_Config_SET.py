@@ -44,4 +44,5 @@ ANN_Config_SET[19] = {"TrainingsData": (101, 1100),
                       "Activation": ['elu', 'elu', 'elu', 'selu']}
 ANN_Config_SET[20] = {"TrainingsData": (101, 1100),
                       "Activation": ['elu', 'elu', 'elu', 'selu']}
+ANN_Config_SET[21] = {"TrainingsData": (101, 1100, 100)}
 

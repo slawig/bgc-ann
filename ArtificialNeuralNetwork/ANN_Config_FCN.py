@@ -47,4 +47,6 @@ ANN_Config_FCN[112] = {"Activation": ['elu', 'elu', 'elu', 'relu'],
                        "TrainingsData": (101, 1100)}
 ANN_Config_FCN[113] = {"Activation": ['elu', 'elu', 'elu', 'relu'],
                        "TrainingsData": (101, 1100)}
+ANN_Config_FCN[114] = {"Activation": ['elu', 'elu', 'elu', 'relu'],
+                       "TrainingsData": (101, 1100, 100)}
 
