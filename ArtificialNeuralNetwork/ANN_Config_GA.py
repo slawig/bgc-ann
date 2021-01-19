@@ -66,3 +66,10 @@ ANN_Config_GA[9] = {'algorithm': 'GeneticAlgorithm',
                                'indexMax': 1000,
                                'trainingSize': 100}}
 
+ANN_Config_GA[10] = {'algorithm': 'Rechenberg',
+                     'generations': 50,
+                     'populationSize': 10,
+                     'config': {'indexMin': ANN_Constants.PARAMETERID_MAX_TEST+1,
+                                'indexMax': 1000,
+                                'trainingSize': 100}}
+
