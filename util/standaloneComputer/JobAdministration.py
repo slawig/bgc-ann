@@ -41,8 +41,8 @@ class JobAdministration():
         currentPath = os.getcwd()
         
         for jobDict in self._jobList:
-            self.__startJob(jobDict) 
-            self.__evaluateResult(jobDict)
+            self._startJob(jobDict) 
+            self._evaluateResult(jobDict)
 
         os.chdir(currentPath)
 
