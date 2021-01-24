@@ -12,10 +12,10 @@ PARALLEL_JOBS = 20
 TIME_SLEEP = 120
 
 #Default parameter
-DATA_PATH = os.path.join('/sfs', 'fs2', 'work-sh1', 'sunip350', 'metos3d')
-PYTHON_PATH = os.path.join('/sfs', 'fs5', 'home-sh', 'sunip350', 'Python', 'bgc-ann')
+DATA_PATH = os.path.join('/gxfs_work1', 'cau', 'sunip350', 'metos3d')
+PYTHON_PATH = os.path.join('/gxfs_home', 'cau', 'sunip350', 'Python', 'bgc-ann')
 PROGRAMM_PATH = os.path.join(PYTHON_PATH, 'ArtificialNeuralNetwork')
-FIGURE_PATH = os.path.join('/sfs', 'fs5', 'home-sh', 'sunip350', 'Daten', 'Figures')
+FIGURE_PATH = os.path.join('/gxfs_home', 'cau', 'sunip350', 'Daten', 'Figures')
 BACKUP_PATH = os.path.join('/nfs', 'tape_cache', 'sunip350', 'Daten', 'metos3d')
 
 DEFAULT_QUEUE = 'clmedium'
