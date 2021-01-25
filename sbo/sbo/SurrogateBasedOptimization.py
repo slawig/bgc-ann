@@ -788,7 +788,7 @@ class SurrogateBasedOptimization(AbstractClassSurrogateBasedOptimization):
         try:
             info = tar.getmember(joboutput)
         except KeyError:
-            logging.info('There is not the joboutput {} in the archiv'.format(jobputput))
+            logging.info('There is not the joboutput {} in the archiv'.format(joboutput))
         else:
             if info.isfile() and info.size > 0 and os.path.exists(os.path.join(pathSBO, joboutput)) and os.path.isfile(os.path.join(pathSBO, joboutput)):
                 os.remove(os.path.join(pathSBO, joboutput))
