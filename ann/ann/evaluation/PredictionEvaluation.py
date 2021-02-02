@@ -23,7 +23,7 @@ class PredictionEvaluation(AbstractClassEvaluation):
     @author: Markus Pfeil
     """
     
-    def __init__(self, annId, parameterId=0, years=1000, trajectoryYear=10, massAdjustment=False, tolerance=None, spinupToleranceReference=False, queue='clmedium', cores=2):
+    def __init__(self, annId, parameterId=0, years=1000, trajectoryYear=10, massAdjustment=False, tolerance=None, spinupToleranceReference=False, nodes=NeshCluster_Constants.DEFAULT_NODES):
         """
         Constructor of the Prediction class
         @author: Markus Pfeil
@@ -35,8 +35,7 @@ class PredictionEvaluation(AbstractClassEvaluation):
         assert type(massAdjustment) is bool
         assert tolerance is None or (type(tolerance) is float and tolerance > 0)
         assert type(spinupToleranceReference) is bool and ((not spinupToleranceReference) or (spinupToleranceReference and tolerance > 0))
-        assert queue in NeshCluster_Constants.QUEUE
-        assert type(cores) is int and cores > 0
+        assert type(nodes) is int and 0 < nodes
         
         #Time
         self._startTime = time.time()
@@ -54,8 +53,7 @@ class PredictionEvaluation(AbstractClassEvaluation):
         self._lastSpinupYear = self._years + 1
         
         #Cluster parameter
-        self._queue = queue
-        self._cores = cores
+        self._nodes = nodes
         
         logging.info('***Time for initialisation: {:.6f}s***\n\n'.format(time.time() - self._startTime))
 
@@ -127,7 +125,7 @@ class PredictionEvaluation(AbstractClassEvaluation):
         Start the simulation for the given model, parameterId and ann type.
         @author: Markus Pfeil
         """
-        metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = self._queue, cores = self._cores)
+        metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, nodes = self._nodes)
         metos3d.setTrajectoryParameter(trajectoryYear=self._trajectoryYear)
         metos3d.setInputDir(self._simulationPath)
         if self._spinupTolerance:
@@ -146,9 +144,10 @@ class PredictionEvaluation(AbstractClassEvaluation):
         """
         assert type(remove) is bool
 
-        metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = self._queue, cores = self._cores)
+        metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, nodes = self._nodes)
         for year in range(self._trajectoryYear, min(self._lastSpinupYear, self._years+1), self._trajectoryYear):
             metos3d.setOneStep(oneStepYear=year)
             metos3d.run()
             if remove:
                 metos3d.removeTracer(oneStepYear=year)
+

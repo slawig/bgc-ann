@@ -25,7 +25,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
     @author: Markus Pfeil
     """
 
-    def __init__(self, annId, parameterId=0, years=1000, trajectoryYear=10, massAdjustment=False, tolerance=None, spinupToleranceReference=False, cpunum=64, queue='clmedium', cores=2):
+    def __init__(self, annId, parameterId=0, years=1000, trajectoryYear=10, massAdjustment=False, tolerance=None, spinupToleranceReference=False, cpunum=NeshCluster_Constants.DEFAULT_NODES * NeshCluster_Constants.CORES, nodes=NeshCluster_Constants.DEFAULT_NODES):
         """
         Constructor of the class for insertion of the approximation data into the database.
         @author: Markus Pfeil
@@ -38,8 +38,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         assert tolerance is None or (type(tolerance) is float and tolerance > 0)
         assert type(spinupToleranceReference) is bool
         assert type(cpunum) is int and cpunum > 0
-        assert queue in NeshCluster_Constants.QUEUE
-        assert type(cores) is int and cores > 0
+        assert type(nodes) is int and 0 < nodes
 
         #Time
         self._startTime = time.time()
@@ -54,8 +53,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         logging.info('***Initialization of DatabaseInsertEvaluation:***\nANN: {}\nAnnId: {:d}\nModel: {}\nParameter id: {:d}\nSpin-up over {:d} years\nMass adjustment: {}'.format(self._annType, self._annId, self._model, self._parameterId, self._years, self._massAdjustment))
 
         #Cluster parameter
-        self._queue = queue
-        self._cores = cores
+        self._nodes = nodes
 
         logging.info('***Time for initialisation: {:.6f}s***\n\n'.format(time.time() - self._startTime))
 
@@ -272,7 +270,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         assert type(overwrite) is bool
 
         self._getModelParameter()
-        metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = NeshCluster_Constants.DEFAULT_QUEUE, cores = NeshCluster_Constants.DEFAULT_CORES)
+        metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, nodes = self._nodes)
         spinup_norm_array = metos3d.read_spinup_norm_values()
         spinup_norm_array_shape = np.shape(spinup_norm_array)
         try:
@@ -319,7 +317,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         lastYear = self._years
         if self._spinupTolerance:
             self._getModelParameter()
-            metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = NeshCluster_Constants.DEFAULT_QUEUE, cores = NeshCluster_Constants.DEFAULT_CORES)
+            metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, nodes = self._nodes)
             lastYear = metos3d.lastSpinupYear()
 
         for year in range(self._trajectoryYear, lastYear, self._trajectoryYear):
@@ -386,7 +384,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         lastYear = self._years
         if self._spinupTolerance:
             self._getModelParameter()
-            metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = NeshCluster_Constants.DEFAULT_QUEUE, cores = NeshCluster_Constants.DEFAULT_CORES)
+            metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, nodes = self._nodes)
             lastYear = metos3d.lastSpinupYear()
 
         for year in range(self._trajectoryYear, lastYear, self._trajectoryYear):
@@ -586,7 +584,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         lastYear = self._years
         if self._spinupTolerance:
             self._getModelParameter()
-            metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, queue = NeshCluster_Constants.DEFAULT_QUEUE, cores = NeshCluster_Constants.DEFAULT_CORES)
+            metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, nodes = self._nodes)
             lastYear = metos3d.lastSpinupYear()
 
         for (year, last) in [(0, False), (lastYear, True)]:
@@ -682,7 +680,7 @@ class DatabaseInsertEvaluation(AbstractClassEvaluation):
         os.makedirs(tracer_path, exist_ok=True)
 
         self._getModelParameter()
-        model = Metos3d.Metos3d(self._model, timestep, self._modelParameter, metos3dSimulationPath, modelYears = modelYears, queue = self._queue, cores = self._cores)
+        model = Metos3d.Metos3d(self._model, timestep, self._modelParameter, metos3dSimulationPath, modelYears = modelYears, nodes = self._nodes)
         model.setCalculateOnlyTrajectory()
 
         if not self._existsTrajectory(tracer_path, timestep=timestep):

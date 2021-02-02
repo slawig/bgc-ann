@@ -14,10 +14,10 @@ from ann.database.access import Ann_Database
 from ANN_Plotfunction import ANN_Plot
 
 #Global variables
-PATH_DATABASE = '/sfs/fs2/work-sh1/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/ANN_Database.db'
-PATH_ANN_RESULTS = '/sfs/fs2/work-sh1/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/ANN-Results'
-PATH_REFERENCE_RESULTS = '/sfs/fs2/work-sh1/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/Reference-Results'
-PATH_FIGURE = '/sfs/fs2/work-sh1/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/Figures'
+PATH_DATABASE = '/gxfs_work1/cau/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/ANN_Database.db'
+PATH_ANN_RESULTS = '/gxfs_work1/cau/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/ANN-Results'
+PATH_REFERENCE_RESULTS = '/gxfs_work1/cau/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/Reference-Results'
+PATH_FIGURE = '/gxfs_work1/cau/sunip350/metos3d/ArtificialNeuralNetwork/PaperData/Figures'
 
 
 #Pattern for the filenames of the tracer concentration

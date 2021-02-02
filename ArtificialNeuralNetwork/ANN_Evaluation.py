@@ -14,7 +14,7 @@ else:
     from neshCluster.JobAdministration import JobAdministration
 
 
-def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), queue=NeshCluster_Constants.DEFAULT_QUEUE, cores=NeshCluster_Constants.DEFAULT_CORES):
+def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES):
     """
     Evaluate the artificial neural networks using
       - the prediction
@@ -27,11 +27,12 @@ def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAM
     """
     assert type(annIdList) in [list, range]
     assert type(parameterIdList) in [list, range]
-    assert queue in NeshCluster_Constants.QUEUE
-    assert type(cores) is int and 0 < cores
+    assert partition in NeshCluster_Constants.PARTITION
+    assert qos in NeshCluster_Constants.QOS
+    assert type(nodes) is int and 0 < nodes
 
     for annId in annIdList:
-        evaluation = ANN_Evaluation(annId, parameterIdList=parameterIdList, queue=queue, cores=cores)
+        evaluation = ANN_Evaluation(annId, parameterIdList=parameterIdList, partition=partition, qos=qos, nodes=nodes)
         evaluation.generateJobList()
         evaluation.runJobs()
 
@@ -43,23 +44,25 @@ class ANN_Evaluation(JobAdministration):
     @author: Markus Pfeil
     """
 
-    def __init__(self, annId, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), queue=NeshCluster_Constants.DEFAULT_QUEUE, cores=NeshCluster_Constants.DEFAULT_CORES, trajectoryFlag=True):
+    def __init__(self, annId, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES, trajectoryFlag=True):
         """
         Initialisation of the evaluation jobs of the ANN with the given annId.
         @author: Markus Pfeil
         """
         assert annId in range(0, ANN_Constants.ANNID_MAX+1)
         assert type(parameterIdList) in [list, range]
-        assert queue in NeshCluster_Constants.QUEUE
-        assert type(cores) is int and 0 < cores
+        assert partition in NeshCluster_Constants.PARTITION
+        assert qos in NeshCluster_Constants.QOS
+        assert type(nodes) is int and 0 < nodes
         assert type(trajectoryFlag) is bool
 
         JobAdministration.__init__(self)
 
         self._annId = annId
         self._parameterIdList = parameterIdList
-        self._queue = queue
-        self._cores = cores
+        self._partition = partition
+        self._qos = qos
+        self._nodes = nodes
         self._trajectoryFlag = trajectoryFlag
 
         annDb = Ann_Database()
@@ -102,13 +105,13 @@ class ANN_Evaluation(JobAdministration):
             if not self._checkJob(parameterId, massAdjustment=massAdjustment, tolerance=tolerance, spinupToleranceReference=spinupToleranceReference):
 
                 if spinupToleranceReference:
-                    filename = os.path.join(ANN_Constants.PATH, 'SpinupTolerance', 'Jobfile', Evaluation_Constants.PATTERN_JOBFILE_SPINUP_REFERENCE.format(self._model, parameterId, 0.0 if tolerance is None else tolerance, self._cores * NeshCluster_Constants.CPUNUM[self._queue]))
-                    joboutput = os.path.join(ANN_Constants.PATH, 'SpinupTolerance', 'Joboutput', Evaluation_Constants.PATTERN_JOBOUTPUT_SPINUP_REFERENCE.format(self._model, parameterId, 0.0 if tolerance is None else tolerance, self._cores * NeshCluster_Constants.CPUNUM[self._queue]))
+                    filename = os.path.join(ANN_Constants.PATH, 'SpinupTolerance', 'Jobfile', Evaluation_Constants.PATTERN_JOBFILE_SPINUP_REFERENCE.format(self._model, parameterId, 0.0 if tolerance is None else tolerance, self._nodes * NeshCluster_Constants.CORES))
+                    joboutput = os.path.join(ANN_Constants.PATH, 'SpinupTolerance', 'Joboutput', Evaluation_Constants.PATTERN_JOBOUTPUT_SPINUP_REFERENCE.format(self._model, parameterId, 0.0 if tolerance is None else tolerance, self._nodes * NeshCluster_Constants.CORES))
                 else:
-                    filename = os.path.join(ANN_Constants.PATH, 'Prediction', 'Jobfile', Evaluation_Constants.PATTERN_JOBFILE.format(self._annType, self._model, self._annId, parameterId, massAdjustment, 0.0 if tolerance is None else tolerance, self._cores * NeshCluster_Constants.CPUNUM[self._queue]))
-                    joboutput = os.path.join(ANN_Constants.PATH, 'Prediction', 'Joboutput', Evaluation_Constants.PATTERN_JOBOUTPUT.format(self._annType, self._model, self._annId, parameterId, massAdjustment, 0.0 if tolerance is None else tolerance, self._cores * NeshCluster_Constants.CPUNUM[self._queue]))
+                    filename = os.path.join(ANN_Constants.PATH, 'Prediction', 'Jobfile', Evaluation_Constants.PATTERN_JOBFILE.format(self._annType, self._model, self._annId, parameterId, massAdjustment, 0.0 if tolerance is None else tolerance, self._nodes * NeshCluster_Constants.CORES))
+                    joboutput = os.path.join(ANN_Constants.PATH, 'Prediction', 'Joboutput', Evaluation_Constants.PATTERN_JOBOUTPUT.format(self._annType, self._model, self._annId, parameterId, massAdjustment, 0.0 if tolerance is None else tolerance, self._nodes * NeshCluster_Constants.CORES))
 
-                programm = 'ANN_EvaluationJob.py {:d} {:d} -queue {:s} -cores {:d}'.format(self._annId, parameterId, self._queue, self._cores)
+                programm = 'ANN_EvaluationJob.py {:d} {:d} -nodes {:d}'.format(self._annId, parameterId, self._nodes)
                 #Optional Parameter
                 if tolerance is not None:
                     programm = programm + ' -tolerance {:f}'.format(tolerance)
@@ -121,12 +124,16 @@ class ANN_Evaluation(JobAdministration):
 
                 jobDict = {}
                 jobDict['jobFilename'] = filename
+                jobDict['path'] = os.path.dirname(filename)
                 jobDict['jobname'] = 'ANN_{}_{}_Prediction'.format(self._model, self._annId)
                 jobDict['joboutput'] = joboutput
                 jobDict['programm'] = os.path.join(NeshCluster_Constants.PROGRAMM_PATH, programm)
-                jobDict['queue'] = self._queue
-                jobDict['cores'] = self._cores
+                jobDict['partition'] = self._partition
+                jobDict['qos'] = self._qos
+                jobDict['nodes'] = self._nodes
                 jobDict['memory'] = 30
+                jobDict['pythonpath'] = NeshCluster_Constants.DEFAULT_PYTHONPATH
+                jobDict['loadingModulesScript'] = NeshCluster_Constants.DEFAULT_LOADING_MODULES_SCRIPT
 
                 self.addJob(jobDict)
 
@@ -142,9 +149,9 @@ class ANN_Evaluation(JobAdministration):
         assert type(spinupToleranceReference) is bool
 
         if spinupToleranceReference:
-            joboutputFile = os.path.join(ANN_Constants.PATH, 'SpinupTolerance', 'Logfile', Evaluation_Constants.PATTERN_LOGFILE_SPINUP_REFERENCE.format(self._model, parameterId, 0.0 if tolerance is None else tolerance, self._cores * NeshCluster_Constants.CPUNUM[self._queue]))
+            joboutputFile = os.path.join(ANN_Constants.PATH, 'SpinupTolerance', 'Logfile', Evaluation_Constants.PATTERN_LOGFILE_SPINUP_REFERENCE.format(self._model, parameterId, 0.0 if tolerance is None else tolerance, self._nodes * NeshCluster_Constants.CORES))
         else:
-            joboutputFile = os.path.join(ANN_Constants.PATH, 'Prediction', 'Logfile', Evaluation_Constants.PATTERN_LOGFILE.format(self._annType, self._model, self._annId, parameterId, massAdjustment, 0.0 if tolerance is None else tolerance, self._cores * NeshCluster_Constants.CPUNUM[self._queue]))
+            joboutputFile = os.path.join(ANN_Constants.PATH, 'Prediction', 'Logfile', Evaluation_Constants.PATTERN_LOGFILE.format(self._annType, self._model, self._annId, parameterId, massAdjustment, 0.0 if tolerance is None else tolerance, self._nodes * NeshCluster_Constants.CORES))
 
         return os.path.exists(joboutputFile) and os.path.isfile(joboutputFile)
 
@@ -152,5 +159,19 @@ class ANN_Evaluation(JobAdministration):
 
 
 if __name__ == '__main__':
-    main(annIdList=[238], queue='clmedium')
+    #Command line parameter
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-partition', nargs='?', type=str, const=NeshCluster_Constants.DEFAULT_PARTITION, default=NeshCluster_Constants.DEFAULT_PARTITION, help='Partition of slum on the Nesh-Cluster (Batch class)')
+    parser.add_argument('-qos', nargs='?', type=str, const=NeshCluster_Constants.DEFAULT_QOS, default=NeshCluster_Constants.DEFAULT_QOS, help='Quality of service on the Nesh-Cluster')
+    parser.add_argument('-nodes', nargs='?', type=int, const=NeshCluster_Constants.DEFAULT_NODES, default=NeshCluster_Constants.DEFAULT_NODES, help='Number of nodes for the job on the Nesh-Cluster')
+    parser.add_argument('-annIds', nargs='*', type=int, default=[], help='List of annIds')
+    parser.add_argument('-annIdRange', nargs=2, type=int, default=[], help='Create list annIds using range (-annIdRange a b: range(a, b)')
+    parser.add_argument('-parameterIds', nargs='*', type=int, default=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), help='List of parameterIds')
+    parser.add_argument('-parameterIdRange', nargs=2, type=int, default=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), help='Create list parameterIds using range (-parameterIdRange a b: range(a, b)')
+
+    args = parser.parse_args()
+    annIdList = args.annIds if len(args.annIds) > 0 or len(args.annIdRange) != 2 else range(args.annIdRange[0], args.annIdRange[1])
+    parameterIdList = args.parameterIds if len(args.parameterIds) > 0 or len(args.parameterIdRange) != 2 else range(args.parameterIdRange[0], args.parameterIdRange[1])
+
+    main(annIdList=annIdList, parameterIdList=parameterIdList, partition=args.partition, qos=args.qos, nodes=args.nodes)
 

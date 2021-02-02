@@ -466,11 +466,11 @@ class AbstractClassGeneticAlgorithm(ABC, JobAdministration):
                 if not (os.path.exists(os.path.join(self._pathGA, genomeFilename)) and os.path.isfile(os.path.join(self._pathGA, genomeFilename))):
                     self.saveGenome(os.path.join(self._pathGA, genomeFilename), genome)
 
-                #Set queue for the training
+                #Set qos for the training
                 if genome.getMaxepoches() < 4000 or "trainingSize" in config and config["trainingSize"] <= 500:
-                    queue='clmedium'
+                    qos = 'normal'
                 else:
-                    queue='cllong'
+                    qos = 'long'
 
                 # Create directory for the joboutput
                 pathLogs = os.path.join(self._pathGA, 'Logs', 'Joboutput')
@@ -492,9 +492,9 @@ class AbstractClassGeneticAlgorithm(ABC, JobAdministration):
                 jobDict['jobname'] = 'GA_{}_{}_TrainingGenome'.format(self._gid, genome.getUId())
                 jobDict['joboutput'] = os.path.join(pathLogs, GA_Constants.PATTERN_JOBOUTPUT_TRANING_GENOME.format(self._gid, genome.getGeneration(), genome.getUId()))
                 jobDict['programm'] = os.path.join(PYTHON_PATH, 'ann', 'ann', 'geneticAlgorithm', programm)
-                jobDict['queue'] = queue
+                jobDict['qos'] = qos
                 jobDict['memory'] = 30
-                jobDict['cores'] = 1
+                jobDict['nodes'] = 1
                 jobDict['genomeFilename'] = genomeFilename
                 jobDict['genomeUid'] = genome.getUId()
                 jobDict['generation'] = genome.getGeneration()
@@ -523,13 +523,10 @@ class AbstractClassGeneticAlgorithm(ABC, JobAdministration):
         assert type(jobDict) is dict
 
         if not self._checkAnn(jobDict['genomeUid'], jobDict['generation']):
-            if jobDict['queue'] == 'clmedium' and SYSTEM != 'PC':
-                jobDict['queue'] = 'cllong'
+            if jobDict['qos'] == 'normal' and SYSTEM != 'PC':
+                jobDict['qos'] = 'long'
                 self._removeDirectory(jobDict['genomeUid'], jobDict['generation'])
                 self._startJob(jobDict)
-            elif jobDict['queue'] == 'cllong' and SYSTEM != 'PC':
-                jobDict['queue'] = 'clbigmem'
-                self._removeDirectory(jobDict['genomeUid'], jobDict['generation'])
                 self._startJob(jobDict)
             else:
                 logging.info('***Could not train the neural network {} in generation {}***'.format(jobDict['genomeUid'], jobDict['generation']))
