@@ -21,7 +21,7 @@ class Metos3d():
     @author: Markus Pfeil
     """
 
-    def __init__(self, model, timestep, modelParameter, simulationPath, modelYears = 10000, queue = NeshCluster_Constants.DEFAULT_QUEUE, cores = NeshCluster_Constants.DEFAULT_CORES):
+    def __init__(self, model, timestep, modelParameter, simulationPath, modelYears = 10000, nodes = NeshCluster_Constants.DEFAULT_NODES):
         """
         Initialisation for metos3d
         @author: Markus Pfeil
@@ -31,8 +31,7 @@ class Metos3d():
         assert type(modelParameter) is list and len(modelParameter) == Metos3d_Constants.METOS3D_MODEL_INPUT_PARAMTER_LENGTH[model]
         assert type(modelYears) is int and 0 <= modelYears
         assert os.path.exists(simulationPath) and os.path.isdir(simulationPath)
-        assert type(queue) is str and queue in NeshCluster_Constants.QUEUE
-        assert type(cores) is int and 0 < cores
+        assert type(nodes) is int and 0 < nodes
         
         #Logging
         self.queue = mp.Queue()
@@ -56,12 +55,9 @@ class Metos3d():
         self._oneStepYear = 50
         self._tracerInputDir = None
 
-        
-
         self._options = {} 
 
-        self._queue = queue
-        self._cores = cores
+        self._nodes = nodes
         
         logging.info('***Metos3d***\nModel: {}\nTimestep id: {:d}\nModel parameter: {}\nSpin-up over {:d} years\n'.format(self._model, self._timestep, self._modelParameter, self._modelYears))
 
@@ -217,7 +213,7 @@ class Metos3d():
         @author: Markus Pfeil
         """
         optionfile = self._optionfile()
-        x = subprocess.run("mpirun $NQSII_MPIOPTS -np {:d} {} {}\n".format(self._cores * NeshCluster_Constants.CPUNUM[self._queue], self._modelPath, optionfile), shell=True, stdout=subprocess.PIPE, check=True)
+        x = subprocess.run("mpirun -np {:d} {} {}\n".format(self._nodes * NeshCluster_Constants.CORES, self._modelPath, optionfile), shell=True, stdout=subprocess.PIPE, check=True)
         stdout_str = x.stdout.decode(encoding='UTF-8')
         if not self._oneStep:
             with open(os.path.join(self._simulationPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME), mode='w') as fid:
