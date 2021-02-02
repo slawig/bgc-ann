@@ -67,6 +67,7 @@ class SurrogateBasedOptimizationJobAdministration(JobAdministration):
 
                 jobDict = {}
                 jobDict['jobFilename'] = os.path.join(SBO_Constants.PATH, 'Optimization', 'Jobfile', SBO_Constants.PATTERN_JOBFILE.format(optimizationId))
+                jobDict['path'] = os.path.join(SBO_Constants.PATH, 'Optimization', 'Jobfile')
                 jobDict['jobname'] = 'SBO_{:d}'.format(optimizationId)
                 jobDict['joboutput'] = os.path.join(SBO_Constants.PATH, 'Optimization', 'Logfile', SBO_Constants.PATTERN_JOBOUTPUT.format(optimizationId))
                 jobDict['programm'] = os.path.join(SBO_Constants.PROGRAMM_PATH, programm)
@@ -111,5 +112,5 @@ if __name__ == '__main__':
 
     optimizationIdList = args.optimizationIds if len(args.optimizationIds) > 0 or len(args.optimizationIdRange) != 2 else range(args.optimizationIdRange[0], args.optimizationIdRange[1])
 
-    main(optimizationIdList, parition=args.partition, qos=args.qos, nodes=args.nodes)
+    main(optimizationIdList, partition=args.partition, qos=args.qos, nodes=args.nodes)
 

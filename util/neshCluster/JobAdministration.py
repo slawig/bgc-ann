@@ -31,11 +31,11 @@ class JobAdministration():
         @author: Markus Pfeil
         """
         assert type(jobDict) is dict
-        assert 'path' in jobDict and jobDict['path'] is str
-        assert 'jobFilename' in jobDict and jobDict['jobFilename'] is str
-        assert 'jobname' in jobDict and jobDict['jobname'] is str
-        assert 'joboutput' in jobDict and jobDict['joboutput'] is str
-        assert 'programm' in jobDict and jobDict['programm'] is str
+        assert 'path' in jobDict and type(jobDict['path']) is str
+        assert 'jobFilename' in jobDict and type(jobDict['jobFilename']) is str
+        assert 'jobname' in jobDict and type(jobDict['jobname']) is str
+        assert 'joboutput' in jobDict and type(jobDict['joboutput']) is str
+        assert 'programm' in jobDict and type(jobDict['programm']) is str
 
         #Test of the optional parameter
         assert jobDict['partition'] in NeshCluster_Constants.PARTITION if 'partition' in jobDict else True
@@ -100,7 +100,7 @@ class JobAdministration():
             self._runningJobs[jobnum] = jobDict
         else:
             #Job was not started
-            logging.error('Job was not started:\n{}'format(stdout_str))
+            logging.error('Job was not started:\n{}'.format(stdout_str))
             assert False
 
 
