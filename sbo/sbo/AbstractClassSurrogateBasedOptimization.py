@@ -24,14 +24,13 @@ class AbstractClassSurrogateBasedOptimization(ABC):
     @author: Markus Pfeil
     """
 
-    def __init__(self, optimizationId, queue=NeshCluster_Constants.DEFAULT_QUEUE, cores=NeshCluster_Constants.DEFAULT_CORES, dbpath=SBO_Constants.DB_PATH):
+    def __init__(self, optimizationId, nodes=NeshCluster_Constants.DEFAULT_NODES, dbpath=SBO_Constants.DB_PATH):
         """
         Initialisation of the surrogate based optimization
         @author: Markus Pfeil
         """
         assert type(optimizationId) is int and 0 <= optimizationId
-        assert queue in NeshCluster_Constants.QUEUE
-        assert type(cores) is int and 0 < cores
+        assert type(nodes) is int and 0 < nodes
 
         #Logging
         self.queue = mp.Queue()
@@ -39,8 +38,7 @@ class AbstractClassSurrogateBasedOptimization(ABC):
         self.lp = threading.Thread(target=self.logger_thread)
 
         self._optimizationId = optimizationId
-        self._queue = queue
-        self._cores = cores
+        self._nodes = nodes
 
         #Set the parameter of the optimization using the configuration saved in the database for the given optimizationId
         self._sboDB = SBO_Database(dbpath=dbpath)
@@ -223,7 +221,7 @@ class AbstractClassSurrogateBasedOptimization(ABC):
                 logging.debug('LowFidelityModel: Calculate the approximation using Metos3d and the predicted concentration as initial concentration')
                 metos3dSimulationPath = self._get_path_lowFidelityModel()
                 os.makedirs(metos3dSimulationPath, exist_ok=not runMetos3d)
-                lowFidelityModel = Metos3d.Metos3d(self._model, self._lowFidelityModelTimestep, u, metos3dSimulationPath, modelYears = self._lowFidelityModelYears, queue = self._queue, cores = self._cores)
+                lowFidelityModel = Metos3d.Metos3d(self._model, self._lowFidelityModelTimestep, u, metos3dSimulationPath, modelYears = self._lowFidelityModelYears, nodes = self._nodes)
 
                 if self._useTrajectoryNorm:
                     lowFidelityModel.setCalculateTrajectory()
@@ -250,7 +248,7 @@ class AbstractClassSurrogateBasedOptimization(ABC):
                 logging.debug('LowFidelityModel: Calculate the trajectory using Metos3d')
                 metos3dSimulationPath = self._get_path_lowFidelityModel()
                 os.makedirs(metos3dSimulationPath, exist_ok=not runMetos3d)
-                lowFidelityModel = Metos3d.Metos3d(self._model, self._lowFidelityModelTimestep, u, metos3dSimulationPath, modelYears = 0, queue = self._queue, cores = self._cores)
+                lowFidelityModel = Metos3d.Metos3d(self._model, self._lowFidelityModelTimestep, u, metos3dSimulationPath, modelYears = 0, nodes = self._nodes)
 
                 #Run metos3d to calculate the trajectory
                 lowFidelityModel.setCalculateOnlyTrajectory()
@@ -278,7 +276,7 @@ class AbstractClassSurrogateBasedOptimization(ABC):
             logging.debug('LowFidelityModel: Calculate the approximation using Metos3d')
             metos3dSimulationPath = self._get_path_lowFidelityModel()
             os.makedirs(metos3dSimulationPath, exist_ok=not runMetos3d)
-            lowFidelityModel = Metos3d.Metos3d(self._model, self._lowFidelityModelTimestep, u, metos3dSimulationPath, modelYears = self._lowFidelityModelYears, queue = self._queue, cores = self._cores)
+            lowFidelityModel = Metos3d.Metos3d(self._model, self._lowFidelityModelTimestep, u, metos3dSimulationPath, modelYears = self._lowFidelityModelYears, nodes = self._nodes)
 
             if self._useTrajectoryNorm:
                 lowFidelityModel.setCalculateTrajectory()
@@ -344,7 +342,7 @@ class AbstractClassSurrogateBasedOptimization(ABC):
         #Run metos3d
         metos3dSimulationPath = self._get_path_highFidelityModel()
         os.makedirs(metos3dSimulationPath, exist_ok=not runMetos3d)
-        highFidelityModel = Metos3d.Metos3d(self._model, self._highFidelityModelTimestep, u, metos3dSimulationPath, modelYears = self._highFidelityModelYears, queue = self._queue, cores = self._cores)
+        highFidelityModel = Metos3d.Metos3d(self._model, self._highFidelityModelTimestep, u, metos3dSimulationPath, modelYears = self._highFidelityModelYears, nodes = self._nodes)
 
         if self._useTrajectoryNorm:
             highFidelityModel.setCalculateTrajectory()

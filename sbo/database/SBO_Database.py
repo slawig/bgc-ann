@@ -277,7 +277,7 @@ class SBO_Database(AbstractClassDatabaseMetos3d):
         return dataset[0][0]
 
 
-    def insert_optimization(self, model, parameterId, initialParameterId, highFidelityModelYears = 5000, highFidelityModelTimestep = 64, lowFidelityModelAnnId = 0, lowFidelityModelYears = None, lowFidelityModelTimestep = None, gamma = 5 * 10**(-2), delta = 5 * 10**(-3), maxIterations = 10, maxIterationOptimization = None, surrogateEnhancement = True, surrogateLowerBound = 0.1, surrogateUpperBound = 5.0, surrogateThreshold = 5 * 10**(-3), trajectoryNorm = True, method = 'L-BFGS-B', cpus = NeshCluster_Constants.DEFAULT_CORES * NeshCluster_Constants.CPUNUM[NeshCluster_Constants.DEFAULT_QUEUE]):
+    def insert_optimization(self, model, parameterId, initialParameterId, highFidelityModelYears = 5000, highFidelityModelTimestep = 64, lowFidelityModelAnnId = 0, lowFidelityModelYears = None, lowFidelityModelTimestep = None, gamma = 5 * 10**(-2), delta = 5 * 10**(-3), maxIterations = 10, maxIterationOptimization = None, surrogateEnhancement = True, surrogateLowerBound = 0.1, surrogateUpperBound = 5.0, surrogateThreshold = 5 * 10**(-3), trajectoryNorm = True, method = 'L-BFGS-B', cpus = NeshCluster_Constants.DEFAULT_NODES * NeshCluster_Constants.CORES):
         """
         Insert the configuration of an optimization
         @author: Markus Pfeil

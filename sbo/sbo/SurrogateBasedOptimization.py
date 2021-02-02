@@ -24,16 +24,15 @@ class SurrogateBasedOptimization(AbstractClassSurrogateBasedOptimization):
     @author: Markus Pfeil
     """
 
-    def __init__(self, optimizationId, queue=NeshCluster_Constants.DEFAULT_QUEUE, cores=NeshCluster_Constants.DEFAULT_CORES):
+    def __init__(self, optimizationId, nodes=NeshCluster_Constants.DEFAULT_NODES):
         """
         Initialisation of the surrogate based optimization
         @author: Markus Pfeil
         """
         assert type(optimizationId) is int and 0 <= optimizationId
-        assert queue in NeshCluster_Constants.QUEUE
-        assert type(cores) is int and 0 < cores
+        assert type(nodes) is int and 0 < nodes
 
-        AbstractClassSurrogateBasedOptimization.__init__(self, optimizationId, queue=queue, cores=cores)
+        AbstractClassSurrogateBasedOptimization.__init__(self, optimizationId, nodes=nodes)
         
         #Parameter for the target concentration calculation
         self._targetTracerModelYears = SBO_Constants.TARGET_TRACER_MODEL_YEARS
@@ -389,7 +388,7 @@ class SurrogateBasedOptimization(AbstractClassSurrogateBasedOptimization):
         #Run metos3d
         metos3dSimulationPath = os.path.join(self._path, 'TargetTracer')
         os.makedirs(metos3dSimulationPath, exist_ok=False)
-        model = Metos3d.Metos3d(self._model, self._targetTracerModelTimestep, self._targetModelParameter, metos3dSimulationPath, modelYears = self._targetTracerModelYears, queue = self._queue, cores = self._cores)
+        model = Metos3d.Metos3d(self._model, self._targetTracerModelTimestep, self._targetModelParameter, metos3dSimulationPath, modelYears = self._targetTracerModelYears, nodes = self._nodes)
         
         if self._useTrajectoryNorm:
             model.setCalculateTrajectory()
@@ -408,7 +407,7 @@ class SurrogateBasedOptimization(AbstractClassSurrogateBasedOptimization):
         """
         metos3dSimulationPath = os.path.join(self._path, 'TargetTracer')
         if self._useTrajectoryNorm and os.path.exists(metos3dSimulationPath) and os.path.isdir(metos3dSimulationPath):
-            model = Metos3d.Metos3d(self._model, self._targetTracerModelTimestep, self._targetModelParameter, metos3dSimulationPath, modelYears = self._targetTracerModelYears, queue = self._queue, cores = self._cores)
+            model = Metos3d.Metos3d(self._model, self._targetTracerModelTimestep, self._targetModelParameter, metos3dSimulationPath, modelYears = self._targetTracerModelYears, nodes = self._nodes)
             model.setCalculateTrajectory()
             model.removeTracer()
 
@@ -422,7 +421,7 @@ class SurrogateBasedOptimization(AbstractClassSurrogateBasedOptimization):
         assert type(orientation) is str
         assert type(fontsize) is int and 0 < fontsize
 
-        sboPlot = SurrogateBasedOptimizationPlot(self._optimizationId, queue=self._queue, cores=self._cores, orientation=orientation, fontsize=fontsize)
+        sboPlot = SurrogateBasedOptimizationPlot(self._optimizationId, nodes=self._nodes, orientation=orientation, fontsize=fontsize)
 
         path = os.path.join(SBO_Constants.PATH_FIGURE, SBO_Constants.PATH_OPTIMIZATION.format(self._optimizationId))
         os.makedirs(path, exist_ok=True)

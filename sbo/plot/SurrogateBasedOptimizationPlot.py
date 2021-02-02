@@ -17,19 +17,18 @@ import sbo.constants as SBO_Constants
 
 class SurrogateBasedOptimizationPlot(Plot, AbstractClassSurrogateBasedOptimization):
 
-    def __init__(self, optimizationId, queue=NeshCluster_Constants.DEFAULT_QUEUE, cores=NeshCluster_Constants.DEFAULT_CORES, orientation='lc1', fontsize=8, dbpath=SBO_Constants.DB_PATH, cmap=None):
+    def __init__(self, optimizationId, nodes=NeshCluster_Constants.DEFAULT_NODES, orientation='lc1', fontsize=8, dbpath=SBO_Constants.DB_PATH, cmap=None):
         """
         Initialize the plot
         @author: Markus Pfeil
         """
         assert type(optimizationId) is int and 0 <= optimizationId
-        assert queue in NeshCluster_Constants.QUEUE
-        assert type(cores) is int and 0 < cores
+        assert type(nodes) is int and 0 < nodes
         assert type(fontsize) is int and 0 < fontsize
         assert os.path.exists(dbpath) and os.path.isfile(dbpath)
 
         Plot.__init__(self, cmap=cmap, orientation=orientation, fontsize=fontsize)
-        AbstractClassSurrogateBasedOptimization.__init__(self, optimizationId, queue=queue, cores= cores, dbpath=dbpath)
+        AbstractClassSurrogateBasedOptimization.__init__(self, optimizationId, nodes=nodes, dbpath=dbpath)
 
         self._path = os.path.join(SBO_Constants.PATH, 'Optimization', SBO_Constants.PATH_OPTIMIZATION.format(self._optimizationId))
         self._pathPlot = os.path.join(self._path, 'Plot')
@@ -381,7 +380,7 @@ class SurrogateBasedOptimizationPlot(Plot, AbstractClassSurrogateBasedOptimizati
                     shutil.copy2(os.path.join(path, 'Tracer', Metos3d_Constants.PATTERN_TRACER_OUTPUT.format(tracer)), os.path.join(pathTracer, Metos3d_Constants.PATTERN_TRACER_INPUT.format(tracer)))
         
             #Run metos3d to calculate the trajectory
-            metos3dModel = Metos3d.Metos3d(self._model, timestep, parameter, metos3dSimulationPath, modelYears = 0, queue = self._queue, cores = self._cores)
+            metos3dModel = Metos3d.Metos3d(self._model, timestep, parameter, metos3dSimulationPath, modelYears = 0, nodes = self._nodes)
             metos3dModel.setCalculateOnlyTrajectory()
             
             if runMetos3d:
