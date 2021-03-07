@@ -53,6 +53,7 @@ class Metos3d():
 
         self._oneStep = False
         self._oneStepYear = 50
+        self._initialConcentration = None
         self._tracerInputDir = None
 
         self._options = {} 
@@ -91,7 +92,7 @@ class Metos3d():
         @author: Markus Pfeil
         """
         assert type(trajectoryYear) is int and 0 < trajectoryYear
-        assert trajectoryStep is None or type(trajectoryStep) is int and 0 < trajectoryStep < Metos3d_Constants.METOS3D_STEPS_PER_YEAR
+        assert trajectoryStep is None or type(trajectoryStep) is int and 0 < trajectoryStep and trajectoryStep <= Metos3d_Constants.METOS3D_STEPS_PER_YEAR
 
         self._trajectory = True
         self._trajectoryYear = trajectoryYear
@@ -114,6 +115,21 @@ class Metos3d():
         """
         self.setCalculateTrajectory()
         self._onlyTrajectory = True
+
+
+    def setInitialConcentration(self, initialConcentration):
+        """
+        Set the values of the constant initial concentrations
+
+        Parameters
+        ----------
+        initialConcentrations : list [float]
+            List of the constant initial concentrations
+        """
+        assert type(initialConcentration) is list
+        assert len(initialConcentration) == len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])
+
+        self._initialConcentration = initialConcentration
 
 
     def setInputDir(self, inputPath):
@@ -245,7 +261,7 @@ class Metos3d():
         self._options['/metos3d/tracer_count'] = len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])
         self._options['/metos3d/tracer_name'] = Metos3d_Constants.METOS3D_MODEL_TRACER[self._model]
         
-        self._options['/model/initial_concentrations'] = Metos3d_Constants.INITIAL_CONCENTRATION[self._model]
+        self._options['/model/initial_concentrations'] = self._initialConcentration if self._initialConcentration is not None else Metos3d_Constants.INITIAL_CONCENTRATION[self._model]
         assert len(self._options['/model/initial_concentrations']) == len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])
 
         if self._tracerInputDir is not None:
