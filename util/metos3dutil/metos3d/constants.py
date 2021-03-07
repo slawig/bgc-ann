@@ -85,6 +85,6 @@ PARAMETER_RESTRICTION = {
     'MITgcm-PO4-DOP': np.array([True, False, True, False, True, False, True, False, True, False, False, False, False, False, False, False, True, True, False, False])
 }
 PARAMETER_NAMES = np.array(['k_w', 'k_c', 'mu_P', 'mu_Z', 'K_N', 'K_P', 'K_I', 'simga_Z', 'sigma_DOP', 'lambda_P', 'kappa_P', 'lambda_Z', 'kappa_Z', 'lambda_prime_P', 'lambda_prime_Z', 'lambda_prime_D', 'lambda_prime_DOP', 'b', 'a_D', 'b_D'])
-PARAMETER_NAMES_LATEX = np.array(['k_w', 'k_c', '\mu_P', '\mu_Z', 'K_N', 'K_P', 'K_I', '\simga_Z', '\sigma_{DOP}', '\lambda_P', '\kappa_P', '\lambda_Z', '\kappa_Z', '\lambda^{\prime}_P', '\lambda^{\prime}_Z', '\lambda^{\prime}_D', '\lambda^{\prime}_{DOP}', 'b', 'a_D', 'b_D'])
+PARAMETER_NAMES_LATEX = np.array(['k_w', 'k_c', '\mu_P', '\mu_Z', 'K_N', 'K_P', 'K_I', '\sigma_Z', '\sigma_{DOP}', '\lambda_P', '\kappa_P', '\lambda_Z', '\kappa_Z', '\lambda^{\prime}_P', '\lambda^{\prime}_Z', '\lambda^{\prime}_D', '\lambda^{\prime}_{DOP}', 'b', 'a_D', 'b_D'])
 PARAMETER_UNITS_LATEX = np.array(['m^{-1}', '(mmol\, P\, m^{-3})^{-1} m^{-1}', 'd^{-1}', 'd^{-1}', 'mmol\, P\, m^{-3}', 'mmol\, P\, m^{-3}', 'W\, m^{-2}', '', '', 'd^{-1}', '(mmol\, P\, m^{-3})^{-1} d^{-1}', 'd^{-1}', '(mmol\, P\, m^{-3})^{-1} d^{-1}', 'd^{-1}', 'd^{-1}', 'd^{-1}', 'yr^{-1}', '', 'd^{-1}', 'm\,d^{-1}'])
 
