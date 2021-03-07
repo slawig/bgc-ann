@@ -15,7 +15,7 @@ def main(optimizationId, nodes=1):
     plots = ['Costfunction', 'StepSizeNorm', 'ParameterConvergence', 'AnnualCycle', 'AnnualCycleParameter', 'Surface', 'SurfaceParameter', 'SurfaceLowFidelityModel']
 
     sbo = SurrogateBasedOptimization(optimizationId, nodes=nodes)
-    sbo.plot(plots=[plots[7]])
+    sbo.plot(plots=[plots[3], plots[4]])
 
 
 if __name__ == '__main__':

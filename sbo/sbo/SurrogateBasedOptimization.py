@@ -440,6 +440,7 @@ class SurrogateBasedOptimization(AbstractClassSurrogateBasedOptimization):
             elif plot == 'ParameterConvergence':
                 for i in range(Metos3d_Constants.METOS3D_MODEL_INPUT_PARAMTER_LENGTH[self._model]):
                     sboPlot.plot_parameter_convergence(parameterIndex=i)
+                    sboPlot.set_subplot_adjust(left=0.17, bottom=0.15, right=0.99, top=0.995)
                     filename = os.path.join(path, SBO_Constants.PATTERN_FIGURE_PARAMETERCONVERGENCE.format(self._model, i+1, self._optimizationId))
                     sboPlot.savefig(filename)
                     sboPlot.close_fig()
@@ -457,15 +458,15 @@ class SurrogateBasedOptimization(AbstractClassSurrogateBasedOptimization):
                 if plotFigure:
                     sboPlot.savefig(filename)
             elif plot == 'AnnualCycleParameter':
-                latitude = 30.9375 #30.9375 #0.0 #30.9375
+                latitude = 30.9375 #-30.9375 #90.0 #-120.9375
                 longitude = -30.9375 #-30.9375 #90.0 #-120.9375
-                depth = 4
+                depth = 0
                 parameterIdList = [0, 1152, 1153] #[1, 1164, 1165, 1166, 1167, 1168, 1169, 1170, 1171, 1172, 1173]  #[0, 1152, 1153, 1154, 1155, 1156, 1157, 1158, 1159, 1160, 1161, 1162, 1163] #[0, 1152, 1153]
                 labelList = None #TODO
                 runMetos3d = False
                 plotFigure = True
                 sboPlot.plot_annual_cycles_parameter(parameterIdList=parameterIdList, labelList=labelList, plotSurrogate=True, latitude=latitude, longitude=longitude, depth=depth, runMetos3d=runMetos3d, plot=plotFigure, remove=False) 
-                sboPlot.set_subplot_adjust(left=0.155, bottom=0.16, right=0.995, top=0.995)
+                sboPlot.set_subplot_adjust(left=0.135, bottom=0.16, right=0.995, top=0.995)
                 filename = os.path.join(path, SBO_Constants.PATTERN_FIGURE_ANNUALCYCLEPARAMETER.format(self._model, latitude, longitude, depth, self._optimizationId))
                 if plotFigure:
                     sboPlot.savefig(filename)

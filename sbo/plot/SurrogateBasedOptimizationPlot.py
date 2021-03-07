@@ -211,7 +211,8 @@ class SurrogateBasedOptimizationPlot(Plot, AbstractClassSurrogateBasedOptimizati
 
         self._axesResult.set_xlabel(r'Time steps')
         self._axesResult.set_ylabel(r'$N \left[ mmol \, P \, m^{-3} \right]$')
-        self._axesResult.legend(loc='best')
+        #self._axesResult.legend(loc='best')
+        #self._axesResult.legend(bbox_to_anchor=(1.02, 0, 0.405, 1), loc="lower left", ncol=1,  mode="expand", borderaxespad=0, labelspacing=0.2, borderpad=0.25)
 
 
     def create_nosiy_parameter(self, metos3dModel, parameterId=0, count=1, noise=0.1, decimals=5):
@@ -278,7 +279,8 @@ class SurrogateBasedOptimizationPlot(Plot, AbstractClassSurrogateBasedOptimizati
                     v1dHighFidelityModel = self._select_trajactory_box(tracerHighFidelityModel, tracerNum=tracerNum, latitude=latitude, longitude=longitude, depth=depth)
 
                     try:
-                        self._axesResult.plot(v1dHighFidelityModel[0,:], v1dHighFidelityModel[1,:], linestyle='solid', color=self._colors[labelIndex], label='$y_f\left({:s}\\right)$'.format(label))
+                        self._axesResult.plot(v1dHighFidelityModel[0,:], v1dHighFidelityModel[1,:], linestyle='solid', color=self._colors[labelIndex-1], label='$y_f\left({:s}\\right)$'.format(label))
+                        #self._axesResult.plot(v1dHighFidelityModel[0,:], v1dHighFidelityModel[1,:], linestyle='solid', color=self._colors[labelIndex-1], label='${:s}$'.format(label))
                     except IOError as e:
                         print("Error message: " + e.args[1])
                         print("Error mesage: Did not plot the result")
@@ -292,7 +294,8 @@ class SurrogateBasedOptimizationPlot(Plot, AbstractClassSurrogateBasedOptimizati
                     v1dLowFidelityModel = self._select_trajactory_box(tracerLowFidelityModel, tracerNum=tracerNum, latitude=latitude, longitude=longitude, depth=depth)
 
                     try:
-                        self._axesResult.plot(v1dLowFidelityModel[0,:], v1dLowFidelityModel[1,:], linestyle=(0, (5, 10)), color=self._colors[labelIndex], label='$y_c\left({:s}\\right)$'.format(label))
+                        self._axesResult.plot(v1dLowFidelityModel[0,:], v1dLowFidelityModel[1,:], linestyle=(0, (5, 10)), color=self._colors[labelIndex-1], label='$y_c\left({:s}\\right)$'.format(label))
+                        #self._axesResult.plot(v1dLowFidelityModel[0,:], v1dLowFidelityModel[1,:], linestyle=(0, (5, 10)), color=self._colors[labelIndex-1])
                     except IOError as e:
                         print("Error message: " + e.args[1])
                         print("Error mesage: Did not plot the result")
@@ -310,7 +313,8 @@ class SurrogateBasedOptimizationPlot(Plot, AbstractClassSurrogateBasedOptimizati
                     v1dSurrogate = self._select_trajactory_box(tracerSurrogate, tracerNum=tracerNum, latitude=latitude, longitude=longitude, depth=depth)
 
                     try:
-                        self._axesResult.plot(v1dSurrogate[0,:], v1dSurrogate[1,:], linestyle=(0, (3, 10, 1, 10)), color=self._colors[labelIndex], label='$s_0\left({:s}\\right)$'.format(label))
+                        self._axesResult.plot(v1dSurrogate[0,:], v1dSurrogate[1,:], linestyle=(0, (3, 10, 1, 10)), color=self._colors[labelIndex-1], label='$s_0\left({:s}\\right)$'.format(label))
+                        #self._axesResult.plot(v1dSurrogate[0,:], v1dSurrogate[1,:], linestyle=(0, (3, 10, 1, 10)), color=self._colors[labelIndex-1])
                     except IOError as e:
                         print("Error message: " + e.args[1])
                         print("Error mesage: Did not plot the result")
@@ -322,7 +326,8 @@ class SurrogateBasedOptimizationPlot(Plot, AbstractClassSurrogateBasedOptimizati
 
         self._axesResult.set_xlabel(r'Time steps')
         self._axesResult.set_ylabel(r'$N \left[ mmol \, P \, m^{-3} \right]$')
-        self._axesResult.legend(loc='best')
+        #self._axesResult.legend(loc='best')
+        #self._axesResult.legend(bbox_to_anchor=(1.02, 0, 0.46, 1), loc="lower left", ncol=1,  mode="expand", borderaxespad=0, labelspacing=0.2, borderpad=0.25)
 
 
     def _get_path_highFidelityModel(self):

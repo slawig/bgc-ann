@@ -14,7 +14,7 @@ else:
     from neshCluster.JobAdministration import JobAdministration
 
 
-def main(optimizationIdList, partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES):
+def main(optimizationIdList, partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES, memory=None):
     """
     Run the surrogate based optimization for the given optimizationIds.
     @author: Markus Pfeil
@@ -23,8 +23,9 @@ def main(optimizationIdList, partition=NeshCluster_Constants.DEFAULT_PARTITION, 
     assert partition in NeshCluster_Constants.PARTITION
     assert qos in NeshCluster_Constants.QOS
     assert type(nodes) is int and 0 < nodes
+    assert memory is None or type(memory) is int and 0 < memory
 
-    sbo = SurrogateBasedOptimizationJobAdministration(optimizationIdList=optimizationIdList, partition=partition, qos=qos, nodes=nodes)
+    sbo = SurrogateBasedOptimizationJobAdministration(optimizationIdList=optimizationIdList, partition=partition, qos=qos, nodes=nodes, memory=memory)
     sbo.generateJobList()
     sbo.runJobs()
 
@@ -36,7 +37,7 @@ class SurrogateBasedOptimizationJobAdministration(JobAdministration):
     @author: Markus Pfeil
     """
 
-    def __init__(self, optimizationIdList, partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES):
+    def __init__(self, optimizationIdList, partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES, memory=None):
         """
         Initialisation of the evaluation jobs of the ANN with the given annId.
         @author: Markus Pfeil
@@ -45,6 +46,7 @@ class SurrogateBasedOptimizationJobAdministration(JobAdministration):
         assert partition in NeshCluster_Constants.PARTITION
         assert qos in NeshCluster_Constants.QOS
         assert type(nodes) is int and 0 < nodes
+        assert memory is None or type(memory) is int and 0 < memory
 
         JobAdministration.__init__(self)
 
@@ -52,6 +54,7 @@ class SurrogateBasedOptimizationJobAdministration(JobAdministration):
         self._partition = partition
         self._qos = qos
         self._nodes = nodes
+        self._memory = memory
 
 
     def generateJobList(self):
@@ -74,7 +77,7 @@ class SurrogateBasedOptimizationJobAdministration(JobAdministration):
                 jobDict['partition'] = self._partition
                 jobDict['qos'] = self._qos
                 jobDict['nodes'] = self._nodes
-                jobDict['memory'] = 48
+                jobDict['memory'] = 10 if self._memory is None else self._memory
                 jobDict['pythonpath'] = NeshCluster_Constants.DEFAULT_PYTHONPATH
                 jobDict['loadingModulesScript'] = NeshCluster_Constants.DEFAULT_LOADING_MODULES_SCRIPT
 
@@ -105,6 +108,7 @@ if __name__ == '__main__':
     parser.add_argument('-partition', nargs='?', type=str, const=NeshCluster_Constants.DEFAULT_PARTITION, default=NeshCluster_Constants.DEFAULT_PARTITION, help='Partition of slum on the Nesh-Cluster (Batch class)')
     parser.add_argument('-qos', nargs='?', type=str, const=NeshCluster_Constants.DEFAULT_QOS, default=NeshCluster_Constants.DEFAULT_QOS, help='Quality of service on the Nesh-Cluster')
     parser.add_argument('-nodes', nargs='?', type=int, const=NeshCluster_Constants.DEFAULT_NODES, default=NeshCluster_Constants.DEFAULT_NODES, help='Number of nodes for the job on the Nesh-Cluster')
+    parser.add_argument('-memory', nargs='?', type=int, const=None, default=None, help='Memory in GB for the job on the Nesh-Cluster')
     parser.add_argument('-optimizationIds', nargs='*', type=int, default=[], help='List of optimizationIds')
     parser.add_argument('-optimizationIdRange', nargs=2, type=int, default=[], help='Create list optimizationsIds using range (-optimiztationIdRange a b: range(a, b)')
 
@@ -112,5 +116,5 @@ if __name__ == '__main__':
 
     optimizationIdList = args.optimizationIds if len(args.optimizationIds) > 0 or len(args.optimizationIdRange) != 2 else range(args.optimizationIdRange[0], args.optimizationIdRange[1])
 
-    main(optimizationIdList, partition=args.partition, qos=args.qos, nodes=args.nodes)
+    main(optimizationIdList, partition=args.partition, qos=args.qos, nodes=args.nodes, memory=args.memory)
 
