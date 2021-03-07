@@ -114,7 +114,7 @@ class JobAdministration():
         #Test if the job exists anymore
         y = subprocess.run(['squeue', '-j', jobnum], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout_str_y = y.stdout.decode(encoding='UTF-8')
-        match_pos = re.search(r'^\s*JOBID\s*PARTITION\s*NAME\s*USER\s*ST\s*TIME\s*NODES\s*NODELIST\(REASON\)\s*(\d+)\s*(\w+)\s*(\w+)\s*(\w+)\s*(\w+)\s*(\d+:\d+)\s*(\d+)\s*(\S+)', stdout_str_y)
+        match_pos = re.search(r'^\s*JOBID\s*PARTITION\s*NAME\s*USER\s*ST\s*TIME\s*NODES\s*NODELIST\(REASON\)\s*(\d+)\s*(\w+)\s*(\w+)\s*(\w+)\s*(\w+)\s*(\d*-?\d*:?\d+:\d+)\s*(\d+)\s*(\S+)', stdout_str_y)
         match_neg_first = re.search(r'^\s*JOBID\s*PARTITION\s*NAME\s*USER\s*ST\s*TIME\s*NODES\s*NODELIST\(REASON\)\s*$', stdout_str_y)
         match_neg_second = re.search(r'^slurm_load_jobs error: Invalid job id specified', stdout_str_y)
 
