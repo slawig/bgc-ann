@@ -25,7 +25,7 @@ class Plot():
         #Colors
         self._colors = {
                 -1: 'black', 
-                 0: 'C5', 
+                 0: 'C1', 
                  1: 'C0', 
                  2: 'C2', 
                  3: 'C3', 
@@ -173,7 +173,7 @@ class Plot():
                       'axes.xmargin': 0.01,
                       'axes.ymargin': 0.02,
     	              'text.usetex': True,
-                      'text.latex.preamble': [r'\usepackage{lmodern}', r'\usepackage{siunitx} \DeclareSIUnit[number-unit-product = \,] \Phosphat{P} \DeclareSIUnit[number-unit-product = {}] \Modelyear{yr} \DeclareSIUnit[number-unit-product = {}] \Timestep{dt}', r'\usepackage{xfrac}']}
+                      'text.latex.preamble': [r'\usepackage{lmodern}', r'\usepackage{siunitx} \DeclareSIUnit[number-unit-product = \,]{\Phosphat}{P} \DeclareSIUnit[number-unit-product = {}]{\Modelyear}{yr} \DeclareSIUnit[number-unit-product = {}]{\Timestep}{dt}', r'\usepackage{xfrac}']}
         
         matplotlib.rcParams.update(params)
 
@@ -261,6 +261,29 @@ class Plot():
         self._axesResult.set_yscale('log', basey=base)
 
 
+    def set_yscale_symlog(self, base=10, linthreshy=10**(-3)):
+        """
+        Set y axis to symmetric logarithm with given base.
+        @author: Markus Pfeil
+        """
+        assert type(base) in [int, float] and 0 < base
+        assert type(linthreshy) is float and 0 < linthreshy
+
+        self._axesResult.set_yscale('symlog', basey=base, linthreshy=linthreshy)
+
+
+    def set_ylim(self, ymin, ymax):
+        """
+        Set the limit of the y axis.
+        @author: Markus Pfeil
+        """
+        assert type(ymin) is float
+        assert type(ymax) is float
+        assert ymin < ymax
+
+        self.__axesResult.set_ylim([ymin, ymax])
+
+
     def set_labels(self, title=None, xlabel=None, xunit=None, ylabel=None, yunit=None):
         """
         Set title and labels of the figure.
@@ -293,6 +316,24 @@ class Plot():
             self._axesResult.set_ylabel(r'{}'.format(yl))
 
 
+    def set_legend_box(self, bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0.0, labelspacing=0.25, borderpad=0.25, ncol=3, handlelength=2.0, handletextpad=0.8):
+        """
+        Set the legend using a bbox.
+        @author: Markus Pfeil
+        """
+        assert type(bbox_to_anchor) is tuple
+        assert type(loc) in [str, int]
+        assert mode is None or mode == 'expand'
+        assert borderaxespad is None or type(borderaxespad) is float and 0.0 <= borderaxespad
+        assert labelspacing is None or type(labelspacing) is float and 0.0 <= labelspacing
+        assert borderpad is None or type(borderpad) is float and 0.0 <= borderpad
+        assert type(ncol) is int and 0 < ncol
+        assert type(handlelength) is float and 0.0 <= handlelength
+        assert type(handletextpad) is float and 0.0 <= handletextpad
+
+        self._axesResult.legend(bbox_to_anchor=bbox_to_anchor, loc=loc, mode=mode, borderaxespad=borderaxespad, labelspacing=labelspacing, borderpad=borderpad, ncol=ncol, handlelength=handlelength, handletextpad=handletextpad)
+
+
     def set_subplot_adjust(self, left=None, bottom=None, right=None, top=None):
         """
         Set Subplot adjust of the figure.
@@ -311,6 +352,10 @@ class Plot():
         Save figure
         @author: Markus Pfeil
         """
+        assert type(filename) is str
+        assert type(format) is str
+
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         self._fig.savefig(filename)
 
 
