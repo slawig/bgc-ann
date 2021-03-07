@@ -4,3 +4,6 @@
 #Database parameter
 timeout = 600    
 NORM = ['2', 'Boxweighted', 'BoxweightedVol']
+INSERT_COUNT = 20
+TIME_SLEEP = 10
+
