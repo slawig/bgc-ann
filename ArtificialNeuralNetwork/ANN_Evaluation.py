@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*
 
+import argparse
 import os
 
 import ann.network.constants as ANN_Constants
@@ -14,7 +15,7 @@ else:
     from neshCluster.JobAdministration import JobAdministration
 
 
-def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES):
+def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES, memory=None, time=None):
     """
     Evaluate the artificial neural networks using
       - the prediction
@@ -30,9 +31,11 @@ def main(annIdList=[222, 213, 207], parameterIdList=range(0, ANN_Constants.PARAM
     assert partition in NeshCluster_Constants.PARTITION
     assert qos in NeshCluster_Constants.QOS
     assert type(nodes) is int and 0 < nodes
+    assert memory is None or type(memory) is int and 0 < memory
+    assert time is None or type(time) is int and 0 < time
 
     for annId in annIdList:
-        evaluation = ANN_Evaluation(annId, parameterIdList=parameterIdList, partition=partition, qos=qos, nodes=nodes)
+        evaluation = ANN_Evaluation(annId, parameterIdList=parameterIdList, partition=partition, qos=qos, nodes=nodes, memory=memory, time=time)
         evaluation.generateJobList()
         evaluation.runJobs()
 
@@ -44,7 +47,7 @@ class ANN_Evaluation(JobAdministration):
     @author: Markus Pfeil
     """
 
-    def __init__(self, annId, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES, trajectoryFlag=True):
+    def __init__(self, annId, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES, memory=None, time=None, trajectoryFlag=True):
         """
         Initialisation of the evaluation jobs of the ANN with the given annId.
         @author: Markus Pfeil
@@ -54,6 +57,8 @@ class ANN_Evaluation(JobAdministration):
         assert partition in NeshCluster_Constants.PARTITION
         assert qos in NeshCluster_Constants.QOS
         assert type(nodes) is int and 0 < nodes
+        assert memory is None or type(memory) is int and 0 < memory
+        assert time is None or type(time) is int and 0 < time
         assert type(trajectoryFlag) is bool
 
         JobAdministration.__init__(self)
@@ -63,6 +68,8 @@ class ANN_Evaluation(JobAdministration):
         self._partition = partition
         self._qos = qos
         self._nodes = nodes
+        self._memory = memory
+        self._time = time
         self._trajectoryFlag = trajectoryFlag
 
         annDb = Ann_Database()
@@ -102,6 +109,7 @@ class ANN_Evaluation(JobAdministration):
 
         for parameterId in self._parameterIdList:
             assert type(parameterId) is int and parameterId in range(0, ANN_Constants.PARAMETERID_MAX+1)
+
             if not self._checkJob(parameterId, massAdjustment=massAdjustment, tolerance=tolerance, spinupToleranceReference=spinupToleranceReference):
 
                 if spinupToleranceReference:
@@ -121,6 +129,7 @@ class ANN_Evaluation(JobAdministration):
                     programm = programm + ' --spinupToleranceReference'
                 if self._trajectoryFlag:
                     programm = programm + ' --trajectory'
+                programm = programm + ' --evaluation'
 
                 jobDict = {}
                 jobDict['jobFilename'] = filename
@@ -131,9 +140,13 @@ class ANN_Evaluation(JobAdministration):
                 jobDict['partition'] = self._partition
                 jobDict['qos'] = self._qos
                 jobDict['nodes'] = self._nodes
-                jobDict['memory'] = 30
                 jobDict['pythonpath'] = NeshCluster_Constants.DEFAULT_PYTHONPATH
                 jobDict['loadingModulesScript'] = NeshCluster_Constants.DEFAULT_LOADING_MODULES_SCRIPT
+
+                if self._memory is not None:
+                    jobDict['memory'] = self._memory
+                if self._time is not None:
+                    jobDict['time'] = self._time
 
                 self.addJob(jobDict)
 
@@ -157,13 +170,14 @@ class ANN_Evaluation(JobAdministration):
 
 
 
-
 if __name__ == '__main__':
     #Command line parameter
     parser = argparse.ArgumentParser()
     parser.add_argument('-partition', nargs='?', type=str, const=NeshCluster_Constants.DEFAULT_PARTITION, default=NeshCluster_Constants.DEFAULT_PARTITION, help='Partition of slum on the Nesh-Cluster (Batch class)')
     parser.add_argument('-qos', nargs='?', type=str, const=NeshCluster_Constants.DEFAULT_QOS, default=NeshCluster_Constants.DEFAULT_QOS, help='Quality of service on the Nesh-Cluster')
     parser.add_argument('-nodes', nargs='?', type=int, const=NeshCluster_Constants.DEFAULT_NODES, default=NeshCluster_Constants.DEFAULT_NODES, help='Number of nodes for the job on the Nesh-Cluster')
+    parser.add_argument('-memory', nargs='?', type=int, const=None, default=None, help='Memory in GB for the job on the Nesh-Cluster')
+    parser.add_argument('-time', nargs='?', type=int, const=None, default=None, help='Time in hours for the job on the Nesh-Cluster')
     parser.add_argument('-annIds', nargs='*', type=int, default=[], help='List of annIds')
     parser.add_argument('-annIdRange', nargs=2, type=int, default=[], help='Create list annIds using range (-annIdRange a b: range(a, b)')
     parser.add_argument('-parameterIds', nargs='*', type=int, default=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), help='List of parameterIds')
@@ -173,5 +187,5 @@ if __name__ == '__main__':
     annIdList = args.annIds if len(args.annIds) > 0 or len(args.annIdRange) != 2 else range(args.annIdRange[0], args.annIdRange[1])
     parameterIdList = args.parameterIds if len(args.parameterIds) > 0 or len(args.parameterIdRange) != 2 else range(args.parameterIdRange[0], args.parameterIdRange[1])
 
-    main(annIdList=annIdList, parameterIdList=parameterIdList, partition=args.partition, qos=args.qos, nodes=args.nodes)
+    main(annIdList=annIdList, parameterIdList=parameterIdList, partition=args.partition, qos=args.qos, nodes=args.nodes, memory=args.memory, time=args.time)
 

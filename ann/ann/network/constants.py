@@ -30,7 +30,7 @@ ANN_GENETIC_ALGORITHM_BEST = 'ANN_{:0>3d}_best.txt'
 SOLUTIONID_MAX = 2
 PARAMETERID_MAX = LHS_Constants.PARAMETERID_MAX
 PARAMETERID_MAX_TEST = 100
-ANNID_MAX = 247
+ANNID_MAX = 249
 
 #Pattern for figures
 PATTERN_FIGURE_SPINUP = 'Spinup.{:s}.AnnId_{:0>5d}.ParameterId_{:d}.MassAdjustment_{}.Tolerance_{}.pdf'

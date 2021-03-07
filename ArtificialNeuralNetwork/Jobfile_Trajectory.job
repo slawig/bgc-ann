@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#SBATCH --job-name=ANN_N_208_Trajectory
+#SBATCH --nodes=2
+#SBATCH --tasks-per-node=32
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=3G
+#SBATCH --time=48:00:00
+#SBATCH --output=/gxfs_home/cau/sunip350/Python/bgc-ann/ArtificialNeuralNetwork/Joboutput.Trajectory_208.out
+#SBATCH --partition=cluster
+#SBATCH --qos=normal
+
+export OMP_NUM_THREADS=1
+
+source /gxfs_work1/cau/sunip350/metos3d/nesh_metos3d_setup.sh
+
+export PYTHONPATH=/gxfs_home/cau/sunip350/Python/bgc-ann/util:/gxfs_home/cau/sunip350/Python/bgc-ann/ann:/gxfs_home/cau/sunip350/Python/bgc-ann/sbo:/gxfs_home/cau/sunip350/Python/bgc-ann/ArtificialNeuralNetwork:/gxfs_home/cau/sunip350/Python/bgc-ann/SurrogateBasedOptimization
+
+for annId in 208
+do
+for i in {0..100}
+do 
+python3 ANN_EvaluationJob.py $annId $i --trajectory
+python3 ANN_EvaluationJob.py $annId $i --massAdjustment --trajectory
+python3 ANN_EvaluationJob.py $annId $i -tolerance 0.0001 --trajectory
+python3 ANN_EvaluationJob.py $annId $i --massAdjustment -tolerance 0.0001 --trajectory
+done
+done
+
+jobinfo
+

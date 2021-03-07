@@ -55,9 +55,12 @@ def main():
 
         #Tatortplots
         plotScatterNorm(annPlot, annId, orientation='etnatp4', rmax=None, color=color)
+        #plotScatterRelNorm(annPlot, annId, massAdjustment=False, tolerance=None, year=0, rmax=0.4)
+        #plotScatterRelNorm(annPlot, annId, massAdjustment=True, tolerance=None, year=0, rmax=0.4)
 
         #Histogram with required model years (Figure 4.7)
         plotHistSpinupYear(annPlot, annId, massAdjustment=True, tolerance=10**(-4), color=color)
+        plotHistSpinupRelYear(annPlot, annId, massAdjustment=True, tolerance=10**(-4), color=color)
 
 
 
@@ -227,6 +230,25 @@ def plotHistSpinupYear(annPlot, annId, massAdjustment=False, tolerance=None, cpu
     annPlot.plot_hist_spinup_year(annId, massAdjustment=massAdjustment, tolerance=tolerance, cpus=cpus, bins=bins, maincolor=maincolor, color=color)
     annPlot.set_subplot_adjust(left=0.105, bottom=0.165, right=0.995, top=0.84)
     filenameHist = os.path.join(PATH_FIGURE, 'AnnId_{:0>5d}'.format(annId), '{}{}.pdf'.format('SpinupYear_Histogram', mapFilename(annId, massAdjustment, tolerance)))
+    annPlot.savefig(filenameHist)
+    annPlot.close_fig()
+
+
+def plotHistSpinupRelYear(annPlot, annId, massAdjustment=False, tolerance=None, cpus=64, bins=25, orientation='gmd', fontsize=8, maincolor='C3', color='b'):
+    """
+    Plot the histogram with the required years to reach the given spin up tolerance for all parameter sets of the latin hypercube sample for the given ann setting.
+    @author: Markus Pfeil
+    """
+    assert type(annId) is int and annId in range(0, ANN_Constants.ANNID_MAX+1)
+    assert type (massAdjustment) is bool
+    assert tolerance is None or tolerance > 0
+    assert type(cpus) is int and cpus > 0
+    assert type(bins) is int and bins > 1
+
+    annPlot._init_plot(orientation=orientation, fontsize=fontsize)
+    annPlot.plot_hist_rel_spinup_year(annId, massAdjustment=massAdjustment, tolerance=tolerance, cpus=cpus, bins=bins)
+    annPlot.set_subplot_adjust(left=0.105, bottom=0.165, right=0.995, top=0.84)
+    filenameHist = os.path.join(PATH_FIGURE, 'AnnId_{:0>5d}'.format(annId), '{}{}.pdf'.format('SpinupRelYear_Histogram', mapFilename(annId, massAdjustment, tolerance)))
     annPlot.savefig(filenameHist)
     annPlot.close_fig()
 

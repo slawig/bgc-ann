@@ -61,6 +61,7 @@ def main(gid):
         assert False, 'Not implemented genetic algorithm {:s}'.format(self._algorithm)
 
     ga.run(config=config['config'])
+    ga.generateBackup()
 
 
 def parseConfig(gid):

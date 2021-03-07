@@ -295,7 +295,7 @@ class ANN_Plot(Plot):
         data = self.database.read_spinup_year(model, concentrationId, massCorrection=massAdjustment, tolerance=tolerance, cpus=cpus)
         concentrationId = self.database.get_concentrationId_constantValues(model, Metos3d_Constants.INITIAL_CONCENTRATION[model])
         dataReference = self.database.read_spinup_year(model, concentrationId, tolerance=tolerance, cpus=64)
-        
+
         assert np.shape(data) == np.shape(dataReference)
         for i in range(np.shape(data)[1]):
             assert data[0,i] == dataReference[0,i]  #ParameterId must be the same

@@ -36,10 +36,10 @@ class SimulationDataBackupEvaluation(AbstractClassData):
         self._getAnnFilenameList()
 
         #TODO Wie kann dieses Konzept verbessert werden? Neue Evaluations enthalten alle vier Optionen
-        self._massAdjustmentList = [38, 56, 122, 170, 200, 201, 202, 203, 204, 205, 206, 207, 208, 213, 214, 219, 220, 221, 222, 225, 226, 228, 231, 235, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247]
+        self._massAdjustmentList = [38, 56, 122, 170, 200, 201, 202, 203, 204, 205, 206, 207, 208, 213, 214, 219, 220, 221, 222, 225, 226, 228, 231, 235, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249]
         self._toleranceList = [10**(-4)]
-        self._spinupToleranceDic = {10**(-4): [38, 56, 122, 170, 200, 201, 202, 203, 204, 205, 206, 207, 208, 213, 214, 219, 220, 221, 222, 225, 226, 228, 231, 235, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247]}
-        self._spinupToleranceDicNoMassAdjustment = {10**(-4): [208, 219, 220, 221, 222, 225, 226, 228, 231, 235, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247]}
+        self._spinupToleranceDic = {10**(-4): [38, 56, 122, 170, 200, 201, 202, 203, 204, 205, 206, 207, 208, 213, 214, 219, 220, 221, 222, 225, 226, 228, 231, 235, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249]}
+        self._spinupToleranceDicNoMassAdjustment = {10**(-4): [208, 219, 220, 221, 222, 225, 226, 228, 231, 235, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249]}
 
         logging.info('***Initialization of SimulationDataBackupEvaluation:***\nANN: {}\nAnnId: {:d}\nModel: {}'.format(self._annType, self._annId, self._model))
 
@@ -90,7 +90,7 @@ class SimulationDataBackupEvaluation(AbstractClassData):
                 simulationPath.append((True, tolerance, os.path.join('Parameter_{:0>3d}'.format(parameterId), 'SpinupTolerance', 'Tolerance_{:.1e}'.format(tolerance))))
 
             if self._annId in self._spinupToleranceDicNoMassAdjustment[tolerance]:
-                simulationPath.append((True, tolerance, os.path.join('Parameter_{:0>3d}'.format(parameterId), 'SpinupTolerance', 'NoMassAdjustment', 'Tolerance_{:.1e}'.format(tolerance))))
+                simulationPath.append((False, tolerance, os.path.join('Parameter_{:0>3d}'.format(parameterId), 'SpinupTolerance', 'NoMassAdjustment', 'Tolerance_{:.1e}'.format(tolerance))))
 
         return simulationPath
 
@@ -121,35 +121,35 @@ class SimulationDataBackupEvaluation(AbstractClassData):
         logfilePath = os.path.join(self._pathPrediction, 'Logfile', logfileName)
         logfilePathSimulation = os.path.join(simulationPath, logfileName)
         check = check and (os.path.exists(logfilePath) and os.path.isfile(logfilePath) or os.path.exists(logfilePathSimulation) and os.path.isfile(logfilePathSimulation))
-        if not check:
+        if not (os.path.exists(logfilePath) and os.path.isfile(logfilePath) or os.path.exists(logfilePathSimulation) and os.path.isfile(logfilePathSimulation)):
             logging.warning('Logfile does not exist: {}\n\n'.format(logfilePath))
 
         if os.path.exists(simulationPath) and os.path.isdir(simulationPath):
             #Check the job output
             joboutputFile = os.path.join(simulationPath, Metos3d_Constants.PATTERN_OUTPUT_FILENAME)
             check = check and os.path.exists(joboutputFile) and os.path.isfile(joboutputFile)
-            if not check:
+            if not (os.path.exists(joboutputFile) and os.path.isfile(joboutputFile)):
                 logging.warning('Joboutput does not exist: {}\n\n'.format(joboutputFile))
 
             for trac in Metos3d_Constants.METOS3D_MODEL_TRACER[self._model]:
                 #Check prediction
                 predictionFile = os.path.join(simulationPath, Metos3d_Constants.PATTERN_TRACER_INPUT.format(trac))
                 check = check and os.path.exists(predictionFile) and os.path.isfile(predictionFile)
-                if not check:
+                if not (os.path.exists(predictionFile) and os.path.isfile(predictionFile)):
                     logging.warning('Prediction does not exist: {}\n\n'.format(predictionFile))
 
                 for end in ['', '.info']:
                     #Check the tracer
                     tracerPath = os.path.join(simulationPath, 'Tracer', '{}{}'.format(Metos3d_Constants.PATTERN_TRACER_OUTPUT.format(trac), end))
                     check = check and os.path.exists(tracerPath) and os.path.isfile(tracerPath)
-                    if not check:
+                    if not (os.path.exists(tracerPath) and os.path.isfile(tracerPath)):
                         logging.warning('Tracer does not exist: {}\n\n'.format(tracerPath))
 
                     #Check the tracer of the one step
                     for year in range(trajectoryYear, lastYear, trajectoryYear):
                         tracerfilename = os.path.join(simulationPath, 'TracerOnestep', '{}{}'.format(Metos3d_Constants.PATTERN_TRACER_OUTPUT_YEAR.format(year, trac), end))
                         check = check and os.path.exists(tracerfilename) and os.path.isfile(tracerfilename)
-                        if not check:
+                        if not (os.path.exists(tracerfilename) and os.path.isfile(tracerfilename)):
                             logging.warning('TracerOnestep does not exist: {}\n\n'.format(tracerfilename))
         else:
             check = False
@@ -262,17 +262,18 @@ class SimulationDataBackupEvaluation(AbstractClassData):
         os.chdir(act_path)
 
 
-    def restore(self, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), movetar=False, restoreAnn=True, restoreLogfile=True, restoreJoboutput=True, restorePrediction=True, restoreTracerOnestep=True):
+    def restore(self, parameterIdList=range(0, ANN_Constants.PARAMETERID_MAX_TEST+1), movetar=False, restoreAnn=True, restoreLogfile=True, restoreJoboutput=True, restorePrediction=True, restoreTracer=True, restoreTracerOnestep=True):
         """
         Restore the simulation data from the backup.
         @author: Markus Pfeil
         """
         assert type(movetar) is bool
-        assert type(parameterIdList) is list
+        assert type(parameterIdList) in [list, range]
         assert type(restoreAnn) is bool
         assert type(restoreLogfile) is bool
         assert type(restoreJoboutput) is bool
         assert type(restorePrediction) is bool
+        assert type(restoreTracer) is bool
         assert type(restoreTracerOnestep) is bool
 
         act_path = os.getcwd()

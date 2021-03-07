@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*
 
-import os
-import numpy as np
 import logging
+import numpy as np
+import os
+import sqlite3
+import time
 
 from metos3dutil.database.DatabaseMetos3d import DatabaseMetos3d
 import ann.network.constants as ANN_Constants
@@ -177,8 +179,18 @@ class Ann_Database(DatabaseMetos3d):
         #Generate and insert training value
         purchases = []
         purchases.append((annId, epoch, loss, valLoss, meanSquaredError, valMeanSquaredError, meanAbsoulteError, valMeanAbsoluteError))
-        self._c.executemany('INSERT INTO AnnTraining VALUES (?,?,?,?,?,?,?,?)', purchases)
-        self._conn.commit()
+
+        inserted = False
+        insertCount = 0
+        while(not inserted and insertCount < DB_Constants.INSERT_COUNT):
+            try:
+                self._c.executemany('INSERT INTO AnnTraining VALUES (?,?,?,?,?,?,?,?)', purchases)
+                self._conn.commit()
+                inserted = True
+            except sqlite3.OperationalError:
+                insertCount += 1
+                #Wait for the next insert
+                time.sleep(DB_Constants.TIME_SLEEP)
 
 
     def check_mass(self, simulationId, expectedCount):
@@ -225,8 +237,18 @@ class Ann_Database(DatabaseMetos3d):
         #Generate and insert spin-up value
         purchases = []
         purchases.append((simulationId, year, massRatio, massDifference))
-        self._c.executemany('INSERT INTO Mass VALUES (?,?,?,?)', purchases)
-        self._conn.commit()
+
+        inserted = False
+        insertCount = 0
+        while(not inserted and insertCount < DB_Constants.INSERT_COUNT):
+            try:
+                self._c.executemany('INSERT INTO Mass VALUES (?,?,?,?)', purchases)
+                self._conn.commit()
+                inserted = True
+            except sqlite3.OperationalError:
+                insertCount += 1
+                #Wait for the next insert
+                time.sleep(DB_Constants.TIME_SLEEP)
 
 
     def delete_mass(self, simulationId):
@@ -291,8 +313,18 @@ class Ann_Database(DatabaseMetos3d):
         #Generate insert
         purchases = []
         purchases.append((simulationId, year, N_mean, N_var, N_min, N_max, N_negative_count, N_negative_sum, DOP_mean, DOP_var, DOP_min, DOP_max, DOP_negative_count, DOP_negative_sum, P_mean, P_var, P_min, P_max, P_negative_count, P_negative_sum, Z_mean, Z_var, Z_min, Z_max, Z_negative_count, Z_negative_sum, D_mean, D_var, D_min, D_max, D_negative_count, D_negative_sum))
-        self._c.executemany('INSERT INTO DeviationTracer VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', purchases)
-        self._conn.commit()
+
+        inserted = False
+        insertCount = 0
+        while(not inserted and insertCount < DB_Constants.INSERT_COUNT):
+            try:
+                self._c.executemany('INSERT INTO DeviationTracer VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', purchases)
+                self._conn.commit()
+                inserted = True
+            except sqlite3.OperationalError:
+                insertCount += 1
+                #Wait for the next insert
+                time.sleep(DB_Constants.TIME_SLEEP)
 
 
     def delete_deviation_tracer(self, simulationId):
@@ -360,8 +392,18 @@ class Ann_Database(DatabaseMetos3d):
         #Generate insert
         purchases = []
         purchases.append((simulationIdA, simulationIdB, yearA, yearB, N_mean, N_var, N_min, N_max, N_negative_count, N_negative_sum, DOP_mean, DOP_var, DOP_min, DOP_max, DOP_negative_count, DOP_negative_sum, P_mean, P_var, P_min, P_max, P_negative_count, P_negative_sum, Z_mean, Z_var, Z_min, Z_max, Z_negative_count, Z_negative_sum, D_mean, D_var, D_min, D_max, D_negative_count, D_negative_sum))
-        self._c.executemany('INSERT INTO DeviationTracerDifference VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', purchases)
-        self._conn.commit()
+
+        inserted = False
+        insertCount = 0
+        while(not inserted and insertCount < DB_Constants.INSERT_COUNT):
+            try:
+                self._c.executemany('INSERT INTO DeviationTracerDifference VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', purchases)
+                self._conn.commit()
+                inserted = True
+            except sqlite3.OperationalError:
+                insertCount += 1
+                #Wait for the next insert
+                time.sleep(DB_Constants.TIME_SLEEP)
 
 
     def delete_difference_tracer_deviation(self, simulationIdA):
