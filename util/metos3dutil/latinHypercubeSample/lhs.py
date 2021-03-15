@@ -9,8 +9,27 @@ import metos3dutil.metos3d.constants as Metos3d_Constants
 
 def readParameterValues(parameterId, metos3dModel):
     """
-    Read the parameter values for the given model and parameterId of the latin hypercube sample
-    @author: Markus Pfeil
+    Returns model parameter of the latin hypercube sample
+
+    Returns the model parameter the latin hypercube sample for the given
+    biogeochemical model and parameterId
+
+    Parameters
+    ----------
+    parameterId : int
+        Id of the parameter of the latin hypercube example
+    metos3dModel : str
+        Name of the biogeochemical model
+
+    Returns
+    -------
+    numpy.ndarray
+        Numpy array with the model parameter
+
+    Raises
+    ------
+    AssertionError
+        If the binary files of the latin hypercube sample does not exist.
     """
     assert parameterId in range(0, LHS_Constants.PARAMETERID_MAX+1)
     assert metos3dModel in Metos3d_Constants.METOS3D_MODELS
