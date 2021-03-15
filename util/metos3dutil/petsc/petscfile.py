@@ -10,8 +10,22 @@ PETSC_VEC_HEADER = 1211214
 
 def readPetscFile(filename):
     """
-    Read a petsc vector of the tracer concentration.
-    @author: Markus Pfeil
+    Returns a numpy array of a readed petsc vector of the tracer concentration
+
+    Parameters
+    ----------
+    filename : str
+        Filename of the petsc file
+
+    Returns
+    -------
+    numpy.ndarray
+        Numpy array of the tracer concentration
+
+    Raises
+    ------
+    AssertionError
+        If the petsc file does not exist.
     """
     assert os.path.exists(filename) and os.path.isfile(filename)
 
@@ -31,8 +45,14 @@ def readPetscFile(filename):
 
 def writePetscFile(filename, vec):
     """
-    Save a numpy vector as petsc file.
-    @author: Markus Pfeil
+    Save a numpy vector as petsc file
+
+    Parameters
+    ----------
+    filename : str
+        Filename of the petsc file
+    vec : numpy.ndarray
+        Numpy array with the tracer concentration
     """
     assert type(vec) is np.ndarray
  
@@ -52,8 +72,22 @@ def writePetscFile(filename, vec):
 
 def readPetscMatrix(filename):
     """
-    Read a petsc matrix.
-    @author: Markus Pfeil
+    Returns a numpy array of a readed petsc matrix
+
+    Parameters
+    ----------
+    filename : str
+        Filename of the petsc file
+
+    Returns
+    -------
+    numpy.ndarray
+        Numpy array of the matrix
+
+    Raises
+    ------
+    AssertionError
+        If the petsc file does not exist.
     """
     assert os.path.exists(filename) and os.path.isfile(filename)
 
@@ -78,3 +112,4 @@ def readPetscMatrix(filename):
                 offset = offset + 1
 
     return matfull
+
