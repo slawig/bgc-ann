@@ -13,11 +13,37 @@ import metos3dutil.petsc.petscfile as petsc
 
 
 class Plot():
+    """
+    Basic functionality for plotting
+    """
 
     def __init__(self, cmap=None, orientation='lc1', fontsize=8, params=None, projection=None):
         """
-        Initialize the plot
-        @author: Markus Pfeil
+        Initialization of the plot environment
+
+        Parameters
+        ----------
+        cmap : matplotlib.colors.Colormap or None, default: None
+            Colormap used in the plots
+        orientation : str, default: 'lc1'
+            Orientation of the plot
+        fontsize : int, default: 8
+            Fontsize used in the plots
+        params : dict or None, default: None
+            Parameters for matplotlib
+        projection : str or None, default: None
+           Projection used for the plot
+
+        Attributes
+        ----------
+        _colors : dict
+            Assignment of a color for each time step
+        _cmap : matplotlib.colors.Colormap
+            Colormap used in the plots. The default colormap is cm.coolwarm.
+        _fig : matplotlib.Figure
+            Top level container for all the plot elements
+        _axesResult : matplotlib.Axes
+            Axes contains most of the figure elements
         """
         assert type(orientation) is str
         assert type(fontsize) is int and 0 < fontsize
@@ -56,8 +82,16 @@ class Plot():
 
     def _init_orientation(self, orientation='lc1'):
         """
-        Initialize the orientation and size of the plot
-        @author: Markus Pfeil
+        Initializes the orientation (width and height) of the plot
+
+        Parameters
+        ----------
+        orientation : str, default: 'lc1'
+            Orientation of the plot
+
+        Notes
+        -----
+        If the orientation is not valid, the program is terminated.
         """
         assert type(orientation) is str
 
@@ -116,9 +150,18 @@ class Plot():
 
     def _init_plot(self, orientation='lc1', fontsize=8, params=None, projection=None):
         """
-        Initialize the plot windows.
-        The title and axes labels are set.
-        @author: Markus Pfeil
+        Initialize the plot windows
+
+        Parameters
+        ----------
+        orientation : str, default: 'lc1'
+            Orientation of the plot
+        fontsize : int, default: 8
+            Fontsize used in the plots
+        params : dict or None, default: None
+            Parameters for matplotlib
+        projection : str or None, default: None
+           Projection used for the plot
         """
         assert type(orientation) is str
         assert type(fontsize) is int and 0 < fontsize
@@ -185,8 +228,22 @@ class Plot():
 
     def init_subplot(self, nrows, ncols, orientation='lc1', subplot_kw=None, gridspec_kw=None):
         """
-        Create a figure with subplots using nrows rows and ncols columns.
-        @author: Markus Pfeil
+        Create a figure with subplots using nrows rows and ncols columns
+
+        Parameters
+        ----------
+        nrows : int
+            Number of rows
+        ncols : int
+            Number of columns
+        orientation : str, default: 'lc1'
+            Orientation of the plot
+        subplot_kw : dict or None, default: None
+            Dict with keywords passed to the add_subplot call used to create
+            each subplot
+        gridspec_kw : dict or None, default: None
+            Dict with keywords passed to the GridSpec construtor used to
+            create the grid the subplots are placed on.
         """
         assert type(nrows) is int and 0 < nrows
         assert type(ncols) is int and 0 < ncols
@@ -206,7 +263,14 @@ class Plot():
 
     def set_subplot(self, nrow, ncol):
         """
-        Set a subplot to plot into.
+        Set a subplot to plot into
+
+        Parameters
+        ----------
+        nrow : int
+            Number of row
+        ncol : int
+            Number of column
         @author: Markus Pfeil
         """
         assert self._nrows is not None
@@ -225,15 +289,13 @@ class Plot():
     def clear_plot(self):
         """
         Clear the current figure
-        @author: Markus Pfeil
         """
         self._fig.clf()
 
 
     def close_fig(self):
         """
-        Close the figure.
-        @author: Markus Pfeil
+        Close the figure windows
         """
         plt.close(self._fig)
 
@@ -241,8 +303,15 @@ class Plot():
     def reinitialize_fig(self, orientation='lc1', fontsize=8):
         """
         Reinitialize the figure
-        Close the current figure and generate a new figure.
-        @author: Markus Pfeil
+
+        Close the current figure and generate a new figure
+
+        Parameters
+        ----------
+        orientation : str, default: 'lc1'
+            Orientation of the plot
+        fontsize : int, default: 8
+            Fontsize used in the plots
         """
         assert type(orientation) is str
         assert type(fontsize) is int and 0 < fontsize
@@ -253,8 +322,12 @@ class Plot():
 
     def set_yscale_log(self, base=10):
         """
-        Set y axis to logarithm with given base.
-        @author: Markus Pfeil
+        Set y axis to logarithm with given base
+
+        Parameters
+        ----------
+        base : int or float, default: 10
+            Base of the logarithm
         """
         assert type(base) in [int, float] and 0 < base
 
@@ -263,8 +336,14 @@ class Plot():
 
     def set_yscale_symlog(self, base=10, linthreshy=10**(-3)):
         """
-        Set y axis to symmetric logarithm with given base.
-        @author: Markus Pfeil
+        Set y axis to symmetric logarithm with given base
+
+        Parameters
+        ----------
+        base : int or float, default: 10
+            Base of the logarithm
+        linthreshy : float
+            Defines the range(-x, x) within which the plot is linear.
         """
         assert type(base) in [int, float] and 0 < base
         assert type(linthreshy) is float and 0 < linthreshy
@@ -274,8 +353,14 @@ class Plot():
 
     def set_ylim(self, ymin, ymax):
         """
-        Set the limit of the y axis.
-        @author: Markus Pfeil
+        Set the limit of the y axis
+
+        Parameters
+        ----------
+        ymin : float
+            Minimum value of the y axis
+        ymax : float
+            Maximum value of the y axis
         """
         assert type(ymin) is float
         assert type(ymax) is float
@@ -286,8 +371,20 @@ class Plot():
 
     def set_labels(self, title=None, xlabel=None, xunit=None, ylabel=None, yunit=None):
         """
-        Set title and labels of the figure.
-        @author: Markus Pfeil
+        Set title and labels of the figure
+
+        Parameters
+        ----------
+        title : str or None, default: None
+            Title of the figure
+        xlabel : str or None, default: None
+            Label of the x axis
+        xunit : str or None, default: None
+            Unit of the x axis
+        ylabel : str or None, default: None
+            Label of the y axis
+        yunit : str or None
+            Unit of the y axis
         """
         assert title is None or type(title) is str
         assert xlabel is None or type(xlabel) is str
@@ -316,10 +413,32 @@ class Plot():
             self._axesResult.set_ylabel(r'{}'.format(yl))
 
 
-    def set_legend_box(self, bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0.0, labelspacing=0.25, borderpad=0.25, ncol=3, handlelength=2.0, handletextpad=0.8):
+    def set_legend_box(self, bbox_to_anchor=(0,1.02,1,0.2), loc='lower left', mode='expand', borderaxespad=0.0, labelspacing=0.25, borderpad=0.25, ncol=3, handlelength=2.0, handletextpad=0.8):
         """
-        Set the legend using a bbox.
-        @author: Markus Pfeil
+        Set the legend using a bbox
+
+        Parameters
+        ----------
+        bbox_to_anchor : 2-tuple or 4-tuple of floats, default: (0,1.02,1,0.2)
+            Box that is used to position the legend in conjunction with loc.
+        loc : str or int, default: 'lower left'
+            Location of the legend
+        mode : {'expand', None}, default: 'expand'
+            If mode is set to 'expand' the legend will be horizontally
+            expanded to fill the axes area.
+        borderaxespad : float, default: 0.0
+            The pad between the axes and legend border, in font-size units.
+        labelspacing : float, default: 0.25
+            The vertical space between the legend entries, in font-size units.
+        borderpad : float, default: 0.25
+            The fractional whitespace inside the legend border, in font-size
+            units.
+        ncol : int, default: 3
+            The number of columns that the legend has.
+        handlelength : float, default: 2.0
+            The length of the legend handles, in font-size units.
+        handletextpad : float, default: 0.8
+            The pad between the legend handle and text, in font-size units.
         """
         assert type(bbox_to_anchor) is tuple
         assert type(loc) in [str, int]
@@ -336,8 +455,24 @@ class Plot():
 
     def set_subplot_adjust(self, left=None, bottom=None, right=None, top=None):
         """
-        Set Subplot adjust of the figure.
-        @author: Markus Pfeil
+        Adjust the subplot layout parameters.
+
+        Unset parameters are left unmodified.
+
+        Parameters
+        ----------
+        left : float, optional
+            The position of the left edge of the subplots, as a fraction of
+            the figure width.
+        bottom : float, optional
+            The position of the bottom edge of the subplots, as a fraction of
+            the figure height.
+        right : float, optional
+            The position of the right edge of the subplots, as a fraction of
+            the figure width.
+        top : float, optional
+            The position of the top edge of the subplots, as a fraction of the
+            figure height.
         """
         assert type(left) is float and 0.0 <= left and left <= 1.0
         assert type(bottom) is float and 0.0 <= bottom and bottom <= 1.0
@@ -347,10 +482,19 @@ class Plot():
         self._fig.subplots_adjust(left=left, bottom=bottom, right=right, top=top)
 
 
-    def savefig(self, filename, format='pdf'):
+    def savefig(self, filename):
         """
-        Save figure
-        @author: Markus Pfeil
+        Save the current figure
+
+        Parameters
+        ----------
+        filename : str
+            Filename of the figure
+
+        Notes
+        -----
+            If the filename is a path and the directory does not exist, the
+            directory is created.
         """
         assert type(filename) is str
         assert type(format) is str
@@ -361,8 +505,21 @@ class Plot():
 
     def _reorganize_data(self, v1d):
         """
-        Reorganize the tracer concentration vector (v1d) from a one dimensional vector to a three dimensional vector using the land sea mask.
-        @author: Markus Pfeil
+        Reorganize the tracer concentration vector from 1D to 3D
+
+        Reorganize the tracer concentration vector (v1d) from a one
+        dimensional vector to a three dimensional vector using the land sea
+        mask.
+
+        Parameters
+        ----------
+        v1d : numpy.ndarry
+            Tracer concentration vector
+
+        Returns
+        -------
+        numpy.ndarray
+            Three dimensional vector of the tracer concentration
         """
         assert type(v1d) is np.ndarray and np.shape(v1d) == (Metos3d_Constants.METOS3D_VECTOR_LEN,)
 

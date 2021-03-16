@@ -10,8 +10,39 @@ from metos3dutil.plot.surfaceplot import SurfacePlot
 
 def plotSurface(v1d, filename, depth=0, projection='robin', orientation='gmd', fontsize=8, plotSurface=True, plotSlice=False, slicenum=None, vmin=None, vmax=None):
     """
-    Plot the tracer concentration
-    @auhtor: Markus Pfeil
+    Create a figure of the tracer concentration in the ocean
+
+    Parameters
+    ----------
+    v1d : numpy.ndarry
+        Tracer concentration vector
+    filename : str
+        Filename of the figure
+    depth : int, default: 0
+        Layer to plot the tracer concentation
+    projection : {'cyl', 'robin'}, default: 'robin'
+        Map projection
+    orientation : str, default: 'gmd'
+        Orientation of the plot
+    fontsize : int, default: 8
+        Fontsize used in the plot
+    plotSurface : bool, default: True
+        If True, create a figure with the tracer concentration for the given
+        layer.
+    plotSlice : bool, default: False
+        If True, create a figure with the tracer concentration for a slice
+    slicenum : list [int] or None, default: None
+        Index of the slices to create a figure
+    vmin : float or None, default: None
+        Minimum value in the figure for the tracer concentration
+    vmax : float or None, default: None
+        Maximum value in the figure for the tracer concentration
+
+    Notes
+    -----
+    The functions creates a figure for the surface plot and a figure for each
+    slice, respectively. The position of the slices are shown as dashed lines
+    in the surface plot.
     """
     assert type(v1d) is np.ndarray
     assert type(depth) is int and 0 <= depth and depth <= Metos3d_Constants.METOS3D_GRID_DEPTH

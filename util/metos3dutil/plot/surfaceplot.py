@@ -11,11 +11,29 @@ import metos3dutil.metos3d.constants as Metos3d_Constants
 
 
 class SurfacePlot(Plot):
+    """
+    Plot of a tracer concentration
+    """
 
     def __init__(self, cmap=None, orientation='lc1', fontsize=8):
         """
-        Initialize the surface plot of the ocean.
-        @author: Markus Pfeil
+        Initializes a surface plot of the ocean
+
+        Parameters
+        ----------
+        cmap : matplotlib.colors.Colormap or None, default: None
+            Colormap used in the plots
+        orientation : str, default: 'lc1'
+            Orientation of the plot
+        fontsize : int, default: 8
+            Fontsize used in the plots
+
+        Attributes
+        ----------
+        _xx : numpy.ndarray
+            Numpy array with the used longitudes
+        _yy : numpy.ndarray
+            Numpy array with the used laditdes
         """
         Plot.__init__(self, cmap=cmap, orientation=orientation, fontsize=fontsize)
 
@@ -27,8 +45,55 @@ class SurfacePlot(Plot):
 
     def plot_surface(self, v1d, depth=0, projection='cyl', linewidth=0.15, expandFactor=2, refinementFactor=12, levels=20, vmin=None, vmax=None, pad=0.05, format=None, ticks=None, extend='neither', extendfrac=None, shrink=1.0, clim=None, meridians=None, colorbar=True):
         """
-        Plot the tracer concentration for one layer.
-        @author: Markus Pfeil
+        Plot the tracer concentration for one layer
+
+        Parameters
+        ----------
+        v1d : numpy.ndarry
+            Tracer concentration vector
+        depth : int, default: 0
+            Layer to plot the tracer concentation
+        projection : {'cyl', 'robin'}, default: 'robin'
+            Map projection
+        linewidth : float, default: 0.15
+            Linewidth sets the line widths in pixels for coast lines
+        expandFactor : int, default: 2
+            Number of steps to extend the tracer concentrations towards the
+            coast lines in order to improve accuracy at coast lines (fill the
+            whole ocean)
+        refinementFactor : int, default: 12
+            Refinement of the resolution to improve accuracy at coast lines
+        levels : int, default: 20
+            Number of levels in the colorbar
+        vmin : float or None, default: None
+            Minimum value in the figure for the tracer concentration
+        vmax : float or None, default: None
+            Maximum value in the figure for the tracer concentration
+        pad : float, default: 0.05
+            Separation between the axes and the color bar in percent of the
+            parent axis
+        format : str or None, default: None
+            Format of the color bar labels
+        ticks : list [float] or None, default: None
+            Color bar ticks
+        extend : {'neither', 'both', 'min', 'max'}
+            Determines the contourf-coloring of values that are outside the
+            levels range
+        extendfrac : {'None, 'auto', length, lengths}, default: None
+            Length of the triangular color bar extensions
+        shrink : float, default: 1.0
+            Fraction by which to multiply the size of the colorbar
+        clim : list [float] or None, default: None
+            Color limits or the image
+        meridians : list [float] or None
+            List of meridians to plot
+        colorbar : bool, default: True
+            If True, plot the color bar
+
+        Returns
+        -------
+        matplotlib.QuadContourSet
+            Returns the result of the function matplotlib.contourf
         """
         assert type(v1d) is np.ndarray and np.shape(v1d) == (Metos3d_Constants.METOS3D_VECTOR_LEN,)
         assert type(depth) is int and 0 <= depth and depth <= Metos3d_Constants.METOS3D_GRID_DEPTH
@@ -104,8 +169,8 @@ class SurfacePlot(Plot):
             if colorbar:
                 cbar = m.colorbar(cntr, location='bottom', format=format, ticks=ticks, pad=pad, extend=extend, extendfrac=extendfrac, shrink=0.5)
 
-            #if clim is not None:
-            #    plt.clim(clim[0], clim[1])
+            if clim is not None:
+                plt.clim(clim[0], clim[1])
 
             #self.set_subplot_adjust(left=0.01, bottom=0.01, right=0.99, top=0.99)
 
@@ -114,7 +179,47 @@ class SurfacePlot(Plot):
 
     def plot_slice(self, v1d, slicenum, yvisible=True, yl=6, yr=58, levels=20, vmin=None, vmax=None, cbarLocation='bottom', pad=0.05, format=None, ticks=None, extend='neither', extendfrac=None, colorbar=True):
         """
-        Plot the tracer concentration for a slice.
+        Plot the tracer concentration for a slice
+
+        Parameters
+        ----------
+        v1d : numpy.ndarry
+            Tracer concentration vector
+        slicenum : int
+            Index of the slice to plot (between 0 and 128)
+        yvisible : bool, default: True
+            If True, create label of the y axis
+        yl : int, default: 6
+            Latitude constraint index (first index)
+        yr : int, default: 58
+            Latitude constraint index (second index)
+        levels : int, default: 20
+            Number of levels in the colorbar
+        vmin : float or None, default: None
+            Minimum value in the figure for the tracer concentration
+        vmax : float or None, default: None
+            Maximum value in the figure for the tracer concentration
+        cbarLocation : str or int
+            Location of the color bar
+        pad : float, default: 0.05
+            Separation between the axes and the color bar in percent of the
+            parent axis
+        format : str or None, default: None
+            Format of the color bar labels
+        ticks : list [float] or None, default: None
+            Color bar ticks
+        extend : {'neither', 'both', 'min', 'max'}
+            Determines the contourf-coloring of values that are outside the
+            levels range
+        extendfrac : {'None, 'auto', length, lengths}, default: None
+            Length of the triangular color bar extensions
+        colorbar : bool, default: True
+            If True, plot the color bar
+
+        Returns
+        -------
+        matplotlib.QuadContourSet
+            Returns the result of the function matplotlib.contourf
         @author: Markus Pfeil
         """
         assert type(v1d) is np.ndarray and np.shape(v1d) == (Metos3d_Constants.METOS3D_VECTOR_LEN,)
@@ -177,8 +282,26 @@ class SurfacePlot(Plot):
 
     def _refinement(self, lons, lats, v, refinementFactor=2):
         """
-        Refine the given data.
-        @author: Markus Pfeil
+        Returns a refinement of the data
+
+        Parameters
+        ----------
+        lons : numpy.ndarray
+            Array of longitudes
+        lats : numpy.ndarray
+            Array of latitudes
+        v : numpy.ndarray
+            3D tracer concentration vector
+        refinementFactor : int, default: 2
+            Refinement factor
+
+        Returns
+        -------
+        tuple [numpy.ndarray]
+            Tuple with a
+              - numpy array including the refined longitudes,
+              - numpy array including the refined latitudes,
+              - numpy array including the refined tracer concentration
         """
         xFine = np.linspace(lons[0], lons[-1], lons.shape[0]*refinementFactor)
         yFine = np.linspace(lats[0], lats[-1], lats.shape[0]*refinementFactor)
@@ -191,8 +314,21 @@ class SurfacePlot(Plot):
 
     def _maskOcean(self, lons, lats, v):
         """
-        Mask the ocean data.
-        @author: Markus Pfeil
+        Mask the ocean data
+
+        Parameters
+        ----------
+        lons : numpy.ndarray
+            Array of longitudes
+        lats : numpy.ndarray
+            Array of latitudes
+        v : numpy.ndarray
+            3D tracer concentration vector
+
+        Returns
+        -------
+        numpy.ndarray
+            Numpy array with the ocean markers
         """
         m = Basemap(projection='cyl', lon_0=0, resolution='h')
         x, y = m(lons, lats)
@@ -205,8 +341,17 @@ class SurfacePlot(Plot):
 
     def _expandOceanData(self, v):
         """
-        Expand the data at the coast line in order to recieve a nicer plot.
-        @author: Markus Pfeil
+        Expand the data at the coast line in order to recieve a nicer plot
+
+        Parameters
+        ----------
+        v : numpy.ndarray
+            Tracer concentration vector
+
+        Returns
+        -------
+        numpy.ndarray
+            Expanded tracer concentration vector
         """
         assert type(v) is np.ndarray
 
