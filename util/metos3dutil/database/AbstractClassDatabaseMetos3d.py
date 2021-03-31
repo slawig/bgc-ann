@@ -9,6 +9,7 @@ import time
 
 import metos3dutil.database.constants as DB_Constants
 import metos3dutil.latinHypercubeSample.constants as LHS_Constants
+from metos3dutil.latinHypercubeSample.LatinHypercubeSample import LatinHypercubeSample as LatinHypercubeSample
 import metos3dutil.metos3d.constants as Metos3d_Constants
 
 
@@ -17,7 +18,7 @@ class AbstractClassDatabaseMetos3d(ABC):
     Abstract class for the database access.
     """
 
-    def __init__(self, dbpath):
+    def __init__(self, dbpath, createDb=False):
         """
         Initialization of the database connection
 
@@ -25,13 +26,17 @@ class AbstractClassDatabaseMetos3d(ABC):
         ----------
         dbpath : str
             Path to the sqlite file of the sqlite database
+        createDb : bool, default: False
+            If True, the database does not have to exist and can be created
+            using the function create_database
 
         Raises
         ------
         AssertionError
             If the dbpath does not exists.
         """
-        assert os.path.exists(dbpath) and os.path.isfile(dbpath)
+        assert type(createDb) is bool
+        assert createDb or os.path.exists(dbpath) and os.path.isfile(dbpath)
 
         self._conn = sqlite3.connect(dbpath, timeout=DB_Constants.timeout)
         self._c = self._conn.cursor()
@@ -57,6 +62,48 @@ class AbstractClassDatabaseMetos3d(ABC):
         Create table parameter
         """
         self._c.execute('''CREATE TABLE Parameter (parameterId INTEGER NOT NULL, k_w REAL NOT NULL, k_c REAL NOT NULL, mu_P REAL NOT NULL, mu_Z REAL NOT NULL, K_N REAL NOT NULL, K_P REAL NOT NULL, K_I REAL NOT NULL, simga_Z REAL NOT NULL, sigma_DOP REAL NOT NULL, lambda_P REAL NOT NULL, kappa_P REAL NOT NULL, lambda_Z REAL NOT NULL, kappa_Z REAL NOT NULL, lambda_prime_P REAL NOT NULL, lambda_prime_Z REAL NOT NULL, lambda_prime_D REAL NOT NULL, lambda_prime_DOP REAL NOT NULL, b REAL NOT NULL, a_D REAL NOT NULL, b_D REAL NOT NULL, PRIMARY KEY (parameterId))''')
+
+
+    def _init_table_parameter(self, referenceParameter=True, latinHypercubeSamples=(True, False, False)):
+        """
+        Initial insert of parameter data sets
+
+        Parameters
+        ----------
+        referenceParameter : bool, default: True
+            If True, insert parameter of the reference parameter set
+        latinHypercubeSamples : tuple (bool)
+            Tuple with three entries for the latin hypercube sample with 100,
+            1000 and 10000 parameter samples. If the boolean for a latin
+            hypercube sample is True, insert all parameter sets of this latin
+            hypercube sample
+
+        Notes
+        -----
+        Inserts the parameter sets in the table Parameter
+        """
+        assert type(referenceParameter) is bool
+        assert type(latinHypercubeSamples) is tuple and len(latinHypercubeSamples) == 3
+
+        purchases = []
+        parameterId = 0
+
+        if referenceParameter:
+            purchases.append((parameterId,) + tuple(Metos3d_Constants.REFERENCE_PARAMETER[i] for i in range(len(Metos3d_Constants.REFERENCE_PARAMETER))))
+            parameterId += 1
+
+        #Latin hypercube samples
+        lhsDict = {0: (os.path.join(LHS_Constants.LHS_PATH, LHS_Constants.FILENAME_LHS_100), 100), 1: (os.path.join(LHS_Constants.LHS_PATH, LHS_Constants.FILENAME_LHS_1000), 1000), 2: (os.path.join(LHS_Constants.LHS_PATH, LHS_Constants.FILENAME_LHS_10000), 10000)}
+        for i in range(len(latinHypercubeSamples)):
+            if latinHypercubeSamples[i] and i in lhsDict:
+                lhs = LatinHypercubeSample(lhsDict[i][0], samples=lhsDict[i][1])
+
+                for j in range(lhsDict[i][1]):
+                    purchases.append((parameterId,) + tuple(lhs.get_all_parameter(j)))
+                    parameterId += 1
+
+        self._c.executemany('INSERT INTO Parameter VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', purchases)
+        self._conn.commit()
 
 
     def exists_parameter(self, parameter, metos3dModel):
