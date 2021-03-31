@@ -55,6 +55,7 @@ class Metos3d():
         self._oneStepYear = 50
         self._initialConcentration = None
         self._tracerInputDir = None
+        self._tracerInputTracer = None
 
         self._options = {} 
 
@@ -140,6 +141,20 @@ class Metos3d():
         assert os.path.exists(inputPath) and os.path.isdir(inputPath)
 
         self._inputDir = inputPath
+
+
+    def setInputTracerName(self, inputTracerName):
+        """
+        Set the name of the input tracer
+
+        Parameters
+        ----------
+        inputTracerName : list [str]
+            List with the names of the input tracer
+        """
+        assert type(inputTracerName) is list and len(inputTracerName) == len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._model])
+
+        self._tracerInputTracer = inputTracerName
 
 
     def setOneStep(self, oneStepYear=50):
@@ -266,7 +281,7 @@ class Metos3d():
 
         if self._tracerInputDir is not None:
             self._options['/metos3d/tracer_input_dir'] = self._tracerInputDir
-            options['/metos3d/input_filenames'] = [Metos3d_Constants.PATTERN_TRACER_INPUT.format(tracer) for tracer in Metos3d_Constants.METOS3D_MODEL_TRACER[self._model]]
+            options['/metos3d/input_filenames'] = [Metos3d_Constants.PATTERN_TRACER_INPUT.format(tracer) for tracer in Metos3d_Constants.METOS3D_MODEL_TRACER[self._model]] if self._tracerInputTracer is None else self._tracerInputTracer
 
         self._options['/metos3d/tracer_output_dir'] = os.path.join(self._simulationPath, 'Tracer')
         os.makedirs(self._options['/metos3d/tracer_output_dir'], exist_ok=True)

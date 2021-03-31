@@ -35,6 +35,10 @@ METOS3D_MODEL_TRACER_MASK['NPZ-DOP'] = np.array([True, True, True, False, True])
 METOS3D_MODEL_TRACER_MASK['NPZD-DOP'] = np.array([True, True, True, True, True])
 METOS3D_MODEL_TRACER_MASK['MITgcm-PO4-DOP'] = np.array([True, False, False, False, True])
 
+METOS3D_MODEL_TRACER_CONCENTRATIONTYP = ['constant' ,'vector']
+METOS3D_MODEL_TRACER_DISTRIBUTION = ['Lognormal', 'Normal', 'OneBox', 'Uniform']
+METOS3D_MODEL_TRACER_TRACERDISTRIBUTION = ['set_mass', 'random_mass']
+
 METOS3D_MODEL_INPUT_PARAMTER_LENGTH = {}
 METOS3D_MODEL_INPUT_PARAMTER_LENGTH['N'] = 5
 METOS3D_MODEL_INPUT_PARAMTER_LENGTH['N-DOP'] = 7
