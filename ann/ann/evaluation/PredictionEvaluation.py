@@ -145,7 +145,7 @@ class PredictionEvaluation(AbstractClassEvaluation):
         assert type(remove) is bool
 
         metos3d = Metos3d.Metos3d(self._model, self._timestep, self._modelParameter, self._simulationPath, modelYears = self._years, nodes = self._nodes)
-        for year in range(self._trajectoryYear, min(self._lastSpinupYear, self._years+1), self._trajectoryYear):
+        for year in range(self._trajectoryYear, min(self._lastSpinupYear+1, self._years+1), self._trajectoryYear):
             metos3d.setOneStep(oneStepYear=year)
             metos3d.run()
             if remove:
