@@ -497,7 +497,6 @@ class Plot():
             directory is created.
         """
         assert type(filename) is str
-        assert type(format) is str
 
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         self._fig.savefig(filename)
