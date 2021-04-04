@@ -849,7 +849,7 @@ class Timesteps_Database(DatabaseMetos3d):
         return simidList
 
 
-    def get_simids_timestep_for_parameter_model(self, parameterId, model):
+    def get_simids_timestep_for_parameter_model(self, parameterId, model, concentrationId=None):
         """
         Returns simulationIds and time steps for the model and parameterId
 
@@ -859,6 +859,9 @@ class Timesteps_Database(DatabaseMetos3d):
             Id of the parameter of the latin hypercube example
         model : str
             Name of the biogeochemical model
+        concentrationId : int or None, default: None
+            Id of the initial concentration. If None, use default constant
+            initial concentration of the model
 
         Returns
         -------
@@ -869,9 +872,10 @@ class Timesteps_Database(DatabaseMetos3d):
         """
         assert type(parameterId) is int and parameterId in range(0, Timesteps_Constants.PARAMETERID_MAX+1)
         assert model in Metos3d_Constants.METOS3D_MODELS
+        assert concentrationId is None or type(concentrationId) is int and 0 <= concentrationId
 
-        sqlcommand = 'SELECT simulationId, timestep FROM Simulation WHERE parameterId = ? AND model = ? ORDER BY simulationId;'
-        self._c.execute(sqlcommand, (parameterId, model,))
+        sqlcommand = 'SELECT simulationId, timestep FROM Simulation WHERE parameterId = ? AND model = ? AND concentrationId = ? ORDER BY simulationId;'
+        self._c.execute(sqlcommand, (parameterId, model, concentrationId if concentrationId is not None else Timesteps_Constants.CONCENTRATIONID_DICT[model]))
         simidList = []
         for parameterId in self._c.fetchall():
             simidList.append([parameterId[0], parameterId[1]])
