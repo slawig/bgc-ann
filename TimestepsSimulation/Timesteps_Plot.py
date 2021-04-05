@@ -102,7 +102,7 @@ def main(orientation='gmd', fontsize=8, plotSpinup=False, plotNorm=False, plotRe
     if plotSurface:
         parameterId = 0
         for metos3dModel in Metos3d_Constants.METOS3D_MODELS:
-            for timestep in Metos3d_Constants.METOS3D_TIMESTEPS:
+            for timestep in Metos3d_Constants.METOS3D_TIMESTEPS[1:]:
                 timestepPlot.plotTracerConcentrationSurface(metos3dModel, parameterId, timestep, plotSlice=True, slicenum=[117])
 
 
