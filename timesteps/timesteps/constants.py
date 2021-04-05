@@ -5,7 +5,7 @@ import os
 from system.system import DATA_PATH, PYTHON_PATH, BACKUP_PATH, FIGURE_PATH
 
 PATH = os.path.join(DATA_PATH, 'LatinHypercubeSample')
-PROGRAM_PATH = os.path.join(PYTHON_PATH, 'Timesteps')
+PROGRAM_PATH = os.path.join(PYTHON_PATH, 'TimestepsSimulation')
 PATH_FIGURE = os.path.join(FIGURE_PATH, 'Timesteps')
 
 DB_PATH = os.path.join(PATH, 'Database', 'Timesteps_Database.db')
