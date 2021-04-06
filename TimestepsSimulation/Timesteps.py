@@ -18,7 +18,7 @@ else:
     from neshCluster.JobAdministration import JobAdministration
 
 
-def main(metos3dModel, parameterIdList=range(Timesteps_Constants.PARAMETERID_MAX+1), timestepList=Metos3d_Constants.METOS3D_TIMESTEPS, concentrationId=None, convergence=False, oscillation=False, partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES, memory=None, time=None):
+def main(metos3dModel, parameterIdList=range(Timesteps_Constants.PARAMETERID_MAX+1), timestepList=Metos3d_Constants.METOS3D_TIMESTEPS, concentrationId=None, convergence=False, oscillation=False, spinupTolerance=None, partition=NeshCluster_Constants.DEFAULT_PARTITION, qos=NeshCluster_Constants.DEFAULT_QOS, nodes=NeshCluster_Constants.DEFAULT_NODES, memory=None, time=None):
     """
     Create jobs for the spin ups using different time steps
 
@@ -40,6 +40,10 @@ def main(metos3dModel, parameterIdList=range(Timesteps_Constants.PARAMETERID_MAX
         If True, generates job file with another initial concentration
         where the simulation oscillates with the standard constant
         concentration
+    spinupTolerance : float or None, default: None
+        If not None, check if the spin up tolerance of the simulation
+        using the standard constant concentration is less than the given
+        spinupTolerance value
     partition : str, default: NeshCluster_Constants.DEFAULT_PARTITION
         Partition of the NEC HPC-Linux-Cluster of the CAU Kiel
     qos : str, default: NeshCluster_Constants.DEFAULT_QOS
@@ -57,6 +61,7 @@ def main(metos3dModel, parameterIdList=range(Timesteps_Constants.PARAMETERID_MAX
     assert concentrationId is None or type(concentrationId) is int and 0 <= concentrationId
     assert type(convergence) is bool
     assert type(oscillation) is bool
+    assert spinupTolerance is None or type(spinupTolerance) is float and 0 < spinupTolerance
     assert partition in NeshCluster_Constants.PARTITION
     assert qos in NeshCluster_Constants.QOS
     assert type(nodes) is int and 0 < nodes
@@ -64,7 +69,7 @@ def main(metos3dModel, parameterIdList=range(Timesteps_Constants.PARAMETERID_MAX
     assert time is None or type(time) is int and 0 < time
 
     timestepsSimulation = TimestepsSimulation(metos3dModel, parameterIdList=parameterIdList, timestepList=timestepList, concentrationId=concentrationId, partition=partition, qos=qos, nodes=nodes, memory=memory, time=time)
-    timestepsSimulation.generateJobList(convergence=convergence, oscillation=oscillation)
+    timestepsSimulation.generateJobList(convergence=convergence, oscillation=oscillation, spinupTolerance=spinupTolerance)
     timestepsSimulation.runJobs()
 
 
@@ -124,7 +129,7 @@ class TimestepsSimulation(JobAdministration):
         self._time = time
 
 
-    def generateJobList(self, convergence=False, oscillation=False):
+    def generateJobList(self, convergence=False, oscillation=False, spinupTolerance=None):
         """
         Generates a list of jobs of spin ups using different time steps
 
@@ -137,6 +142,10 @@ class TimestepsSimulation(JobAdministration):
             If True, generates job file with another initial concentration
             where the simulation oscillates with the standard constant
             concentration
+        spinupTolerance : float or None, default: None
+            If not None, check if the spin up tolerance of the simulation
+            using the standard constant concentration is less than the given
+            spinupTolerance value
 
         Notes
         -----
@@ -144,10 +153,11 @@ class TimestepsSimulation(JobAdministration):
         """
         assert type(convergence) is bool
         assert type(oscillation) is bool
+        assert spinupTolerance is None or type(spinupTolerance) is float and 0 < spinupTolerance
 
         for parameterId in self._parameterIdList:
             for timestep in self._timestepList:
-                if not self._checkJob(parameterId, timestep) and self._checkConvergenceOscillation(parameterId, timestep, convergence=convergence, oscillation=oscillation):
+                if not self._checkJob(parameterId, timestep) and self._checkConvergenceOscillation(parameterId, timestep, convergence=convergence, oscillation=oscillation, spinupTolerance=spinupTolerance):
                     program = 'Timesteps_Jobcontrol.py -metos3dModel {:s} -parameterId {:d} -timestep {:d} -nodes {:d}'.format(self._metos3dModel, parameterId, timestep, self._nodes)
 
                     #Optional parameter
@@ -197,9 +207,10 @@ class TimestepsSimulation(JobAdministration):
         return os.path.exists(joboutput) and os.path.isfile(joboutput)
 
 
-    def _checkConvergenceOscillation(self, parameterId, timestep, convergence=False, oscillation=False):
+    def _checkConvergenceOscillation(self, parameterId, timestep, convergence=False, oscillation=False, spinupTolerance=None):
         """
-        Check if the simulation oscillates using the standard constant
+        Check if the simulation oscillates, does not converge or does not
+        reach the given spin up tolerance using the standard constant
         concenetration
 
         Parameters
@@ -214,12 +225,17 @@ class TimestepsSimulation(JobAdministration):
         oscillation : bool, default: False
             If True, check the simulation using the standard constant
             concenration for oscillation
+        spinupTolerance : float or None, default: None
+            If not None, check if the spin up tolerance of the simulation
+            using the standard constant concentration is less than the given
+            spinupTolerance value
 
         Returns
         -------
         bool
-            True, if the simulation does not converge or oscillates using the
-            standard constant concentration
+            True, if the simulation does not converge, oscillates or does not
+            reach the given spin up tolerance using the standard constant
+            concentration
 
         Notes
         -----
@@ -231,38 +247,46 @@ class TimestepsSimulation(JobAdministration):
         assert timestep in Metos3d_Constants.METOS3D_TIMESTEPS
         assert type(convergence) is bool
         assert type(oscillation) is bool
+        assert spinupTolerance is None or type(spinupTolerance) is float and 0 < spinupTolerance
 
-        convergentSimulation = not convergence
-        oscillationSimulation = not oscillation
+        divergentSimulation = not convergence
+        oscillatingSimulation = not oscillation
+        spinupToleranceSimulation = True if spinupTolerance is None else False
 
-        if convergence or oscillation:
-            convergentSimulation = False
-            oscillationSimulation = False
+        if convergence or oscillation or spinupTolerance is not None:
+            divergentSimulation = False
+            oscillatingSimulation = False
+            spinupToleranceSimulation = False
 
             database = Timesteps_Database()
 
             try:
                 simulationId = database.get_simulationId(self._metos3dModel, parameterId, Timesteps_Constants.CONCENTRATIONID_DICT[self._metos3dModel], timestep=timestep)
 
-                #Converges the simulation
+                #Diverges the simulation
                 if convergence:
-                    convergentSimulation = database.get_convergence(simulationId)
+                    divergentSimulation = not database.get_convergence(simulationId)
 
                 #Oscillates the simulation
                 if oscillation:
-                    oscillationSimulation = database.oscillation_spin(simulationId)
+                    oscillatingSimulation = database.oscillation_spin(simulationId)
+
+                #Reaches the simulation the spin up tolerance
+                if spinupTolerance is not None:
+                    spinupToleranceSimulation = (database.read_spinupTolerance(simulationId) > spinupTolerance)
 
                 #Insert simulation in the database
-                if (convergentSimulation or oscillationSimulation) and not database.exists_simulaiton(self._metos3dModel, parameterId, self._concentrationId, timestep=timestep):
+                if (divergentSimulation or oscillatingSimulation or spinupToleranceSimulation) and not database.exists_simulaiton(self._metos3dModel, parameterId, self._concentrationId, timestep=timestep):
                     database.insert_simulation(self._metos3dModel, parameterId, self._concentrationId, timestep=timestep)
 
             except (AssertionError, sqlite3.OperationalError) as err:
-                convergentSimulation = False
-                oscillationSimulation = False
+                divergentSimulation = False
+                oscillatingSimulation = False
+                spinupToleranceSimulation = False
 
             database.close_connection()
 
-        return convergentSimulation or oscillationSimulation
+        return divergentSimulation or oscillatingSimulation or spinupToleranceSimulation
 
 
 
@@ -276,6 +300,7 @@ if __name__ == '__main__':
     parser.add_argument('-concentrationId', nargs='?', const=None, default=None, help='Id of the initial concentration')
     parser.add_argument('-convergence', '--convergence', action='store_true', help='Simulation with another initial concentration for divergent simulations')
     parser.add_argument('-oscillation', '--oscillation', action='store_true', help='Simulation with another initial concentration for oscillating simulations')
+    parser.add_argument('-spinupTolerance', nargs='?', const=None, default=None, help='Simulation with another initial concentration if the simulation using standard concentration does not reach the spin up tolerance')
     parser.add_argument('-partition', nargs='?', type=str, const=NeshCluster_Constants.DEFAULT_PARTITION, default=NeshCluster_Constants.DEFAULT_PARTITION, help='Partition of slum on the Nesh-Cluster (Batch class)')
     parser.add_argument('-qos', nargs='?', type=str, const=NeshCluster_Constants.DEFAULT_QOS, default=NeshCluster_Constants.DEFAULT_QOS, help='Quality of service on the Nesh-Cluster')
     parser.add_argument('-nodes', nargs='?', type=int, const=NeshCluster_Constants.DEFAULT_NODES, default=NeshCluster_Constants.DEFAULT_NODES, help='Number of nodes for the job on the Nesh-Cluster')
@@ -286,6 +311,7 @@ if __name__ == '__main__':
     parameterIdList = args.parameterIds if len(args.parameterIdRange) != 2 else range(args.parameterIdRange[0], args.parameterIdRange[1])
 
     concentrationId = None if args.concentrationId is None else int(args.concentrationId)
+    spinupTolerance = None if args.spinupTolerance is None else float(args.spinupTolerance)
 
-    main(args.metos3dModel, parameterIdList=parameterIdList, timestepList=args.timesteps, concentrationId=concentrationId, convergence=args.convergence, oscillation=args.oscillation, partition=args.partition, qos=args.qos, nodes=args.nodes, memory=args.memory, time=args.time)
+    main(args.metos3dModel, parameterIdList=parameterIdList, timestepList=args.timesteps, concentrationId=concentrationId, convergence=args.convergence, oscillation=args.oscillation, spinupTolerance=spinupTolerance, partition=args.partition, qos=args.qos, nodes=args.nodes, memory=args.memory, time=args.time)
 

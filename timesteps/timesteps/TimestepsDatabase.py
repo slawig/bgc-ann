@@ -1216,6 +1216,32 @@ class Timesteps_Database(DatabaseMetos3d):
         return simdata
 
 
+    def read_spinupTolerance(self, simulationId, year=9999):
+        """
+        Returns the spin up tolerance of a simulation
+
+        Parameters
+        ----------
+        simulationId : int
+            Id defining the parameter for spin up calculation
+        year : int, default: 9999
+            Model year of the simulatin
+
+        Returns
+        -------
+        float
+            Spin up tolerance of the simulation for the given model year
+        """
+        assert type(simulationId) is int and simulationId >= 0
+        assert type(year) is int and 0 <= year
+
+        sqlcommand = 'SELECT tolerance FROM Spinup WHERE simulationId = ? AND year = ?;'
+        self._c.execute(sqlcommand,  (simulationId, year))
+        tolerance = self._c.fetchall()
+        assert len(tolerance) == 1
+        return float(tolerance[0][0])
+
+
     def oscillation_spin(self, simulationId, startYear=5000, deviation=0.05, percentageDeviation=0.1, count=0.1):
         """
         Returns a boolean whether the spin up norm oscillates
