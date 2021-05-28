@@ -25,6 +25,8 @@ PATTERN_FIGURE_SPINUP = 'Spinup.{:s}.ParameterId_{:0>3d}.pdf'
 PATTERN_FIGURE_NORM = '{:s}{:s}Norm.{:s}.ParameterId_{:0>3d}.pdf'
 PATTERN_FIGURE_SPINUP_NORM = 'ScatterPlot.SpinupNorm_{:s}{:s}.{:s}.pdf'
 PATTERN_FIGURE_ERROR_REDUCTION = 'ScatterPlot.ErrorReduction.Norm_{:s}.{:s}.pdf'
+PATTERN_FIGURE_REQUIRED_MODEL_YEARS = 'ScatterPlot.RequiredModelYears.Norm_{:s}.{:s}.pdf'
+PATTERN_FIGURE_COSTFUNCTION = 'ScatterPlot.Costfunction_{:s}.{:s}.pdf'
 PATTERN_FIGURE_OSCILLATION_PARAMETER = 'ScatterPlot.OscillationParameter.{:s}.{:d}dt.pdf'
 PATTERN_FIGURE_SURFACE = 'Surface.Timesteps.{:s}.{:d}dt.ParameterId_{:d}.{:s}.relError_{}.diff_{}.pdf'
 

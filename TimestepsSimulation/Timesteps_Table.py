@@ -29,12 +29,16 @@ def main():
     timestepTable = TimestepsTables()
 
     #Table with the number of oscillations
-    oscillationCount = timestepTable.oscillationCount()
-    print('Table with the number of oscillations:\n{:s}'.format(oscillationCount))
+#    oscillationCount = timestepTable.oscillationCount()
+#    print('Table with the number of oscillations:\n{:s}'.format(oscillationCount))
 
     #Table with the distribution of oscillations
-    oscillationDistribution = timestepTable.oscillationDistribution()
-    print('Table with oscillation distribution:\n{:s}'.format(oscillationDistribution))
+#    oscillationDistribution = timestepTable.oscillationDistribution()
+#    print('Table with oscillation distribution:\n{:s}'.format(oscillationDistribution))
+
+    #Table with the costfunction value for the reference parameter
+    costfunction = timestepTable.costfunction()
+    print('Table with cost function values:\n{:s}'.format(costfunction))
 
     timestepTable.closeDatabaseConnection()
 
@@ -72,6 +76,51 @@ class TimestepsTables():
         Close the connection of the database
         """
         self._database.close_connection()
+
+
+    def costfunction(self, parameterId=0, year=10000, costfunction='OLS', measurementId=0):
+        """
+        Table with the cost function values for each model and time step
+
+        Create a latex table string with the cost function values using the
+        spin-up result after the given model years. The table includes this
+        values for each time step and every biogeochemical model.
+
+        PARAMETER
+        ---------
+        parameterId : int, default: 0
+            Id of the parameter of the latin hypercube example
+        year : int, default: 10000
+            Model year of the spin-up calculation
+        costfunction : {'OLS', 'GLS', 'WLS'}, default: 'OLS'
+            Used cost function
+        measurementId : int, default: 0
+            Selection of the tracer included in the cost function calculation
+
+        RETURNS
+        -------
+        str
+            Latex table string with the cost function value for the
+            different biogeochemical models and time steps
+        """
+        assert parameterId in range(0, Timesteps_Constants.PARAMETERID_MAX+1)
+        assert type(year) is int and 0 <= year
+        assert costfunction in ['OLS', 'GLS', 'WLS']
+        assert type(measurementId) is int and 0 <= measurementId
+
+        tableStr = '\\hline\nTime step & {:s}  \\\\\n\\hline\n'.format(' & '.join(map(str, Metos3d_Constants.METOS3D_MODELS)))
+        for timestep in Metos3d_Constants.METOS3D_TIMESTEPS:
+            tableStr = tableStr + '{:>2d}dt'.format(timestep)
+            for metos3dModel in Metos3d_Constants.METOS3D_MODELS:
+                costfunctionValue = self._database.get_table_costfunction_value(parameterId=parameterId, model=metos3dModel, timestep=timestep, year=year, costfunction=costfunction, measurementId=measurementId)
+                if len(costfunctionValue) == 1:
+                    tableStr = tableStr + ' & {:.3e}'.format(costfunctionValue[0][1])
+                else:
+                    tableStr = tableStr + ' & {:^9s}'.format('-')
+            tableStr = tableStr + ' \\\\\n'
+        tableStr = tableStr + '\\hline\n'
+
+        return tableStr
 
 
     def oscillationCount(self):

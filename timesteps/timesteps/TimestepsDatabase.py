@@ -352,6 +352,28 @@ class Timesteps_Database(DatabaseMetos3d):
         self._c.execute('''CREATE TABLE Convergence (simulationId INTEGER NOT NULL REFERENCES Simulation(simulationId), convergence INTEGER NOT NULL, PRIMARY KEY (simulationId))''')
 
 
+    def check_convergence(self, simulationId):
+        """
+        Returns if en entries for the convergence exists
+
+        Parameters
+        ----------
+        simulationId : int
+            Id defining the parameter for spin up calculation
+
+        Returns
+        -------
+        bool
+           True if an database entry exists for the simulationId
+        """
+        assert type(simulationId) is int and simulationId >= 0
+
+        sqlcommand = 'SELECT convergence FROM Convergence WHERE simulationId = ?'
+        self._c.execute(sqlcommand, (simulationId, ))
+        convergence = self._c.fetchall()
+        return len(convergence) > 0
+
+
     def get_convergence(self, simulationId):
         """
         Returns the convergence behaviour
@@ -1710,7 +1732,7 @@ class Timesteps_Database(DatabaseMetos3d):
         else:
             parameterStr = ''
 
-        sqlcommand = 'SELECT sim.simulationId, sim.parameterId, sp.tolerance, normDiff.tracer/norm.tracer FROM Simulation AS sim, Simulation AS sim2, Spinup AS sp, Tracer{:s}Norm AS norm, TracerDifference{:s}{:s}Norm AS normDiff  WHERE sim.model = ? AND sim.timestep = ? AND sim.simulationId = sp.simulationId AND sp.year = ? AND sim.simulationId = norm.simulationId AND norm.year = ? AND normDiff.simulationIdA = sim.simulationId AND normDiff.yearA = ? AND normDiff.yearB = ? AND sim.model = sim2.model AND sim.parameterId = sim2.parameterId AND sim.concentrationId = sim2.concentrationId AND sim2.timestep = 1 AND normDiff.simulationIdB = sim2.simulationId ORDER BY sim.parameterId;'.format(norm, trajectory, norm)
+        sqlcommand = 'SELECT sim.simulationId, sim.parameterId, sp.tolerance, normDiff.tracer/norm.tracer FROM Simulation AS sim, Simulation AS sim2, Spinup AS sp, Tracer{:s}Norm AS norm, TracerDifference{:s}{:s}Norm AS normDiff WHERE sim.model = ? AND sim.timestep = ?{:s} AND sim.simulationId = sp.simulationId AND sp.year = ? AND sim2.simulationId = norm.simulationId AND norm.year = ? AND normDiff.simulationIdA = sim.simulationId AND normDiff.yearA = ? AND normDiff.yearB = ? AND sim.model = sim2.model AND sim.parameterId = sim2.parameterId AND sim.concentrationId = sim2.concentrationId AND sim2.timestep = 1 AND normDiff.simulationIdB = sim2.simulationId ORDER BY sim.parameterId;'.format(norm, trajectory, norm, parameterStr)
         self._c.execute(sqlcommand, (model, timestep, year-1, year, year, year))
         simrows = self._c.fetchall()
         simdata = np.empty(shape=(len(simrows), 4))
@@ -1724,7 +1746,124 @@ class Timesteps_Database(DatabaseMetos3d):
             i = i+1
 
         return simdata
-        
+
+
+    def read_tolerance_required_ModelYears_relNorm(self, model, timestep, tolerance=0.0001, norm='2', trajectory='', lhs=True):
+        """
+        Returns required model years and norm values
+
+        Returns the required model years to reach the given tolerance during
+        the spin up and the relative error (the norm of the tracer
+        concentration difference between the spin up calcluation using the
+        given time step (stopped with the given tolerance) and the spin up using
+        the time step 1dt over 10000 model years) for every parameter and the
+        given model.
+
+        Parameters
+        ----------
+        model : str
+            Name of the biogeochemical model
+        timestep : int
+            Time step used for the spin up calculation
+        tolerance : float, default: 0.0001
+            Tolerance used for the spin up calculation
+        norm : string, default: '2'
+            Used norm
+        trajectory : str, default: ''
+            Use for '' the norm only at the first time point in a model year
+            and use for 'trajectory' the norm over the whole trajectory
+        lhs : bool, default: True
+            Use only the model parameter of the latin hypercube sample
+
+        Returns
+        -------
+        numpy.ndarray
+            2D array with the simulationId, parameterId, the required model year
+            and the relative error
+        """
+        assert model in Metos3d_Constants.METOS3D_MODELS
+        assert timestep in Metos3d_Constants.METOS3D_TIMESTEPS
+        assert type(tolerance) is float and 0.0 <= tolerance
+        assert norm in DB_Constants.NORM
+        assert trajectory in ['', 'Trajectory']
+        assert type(lhs) is bool
+
+        if lhs:
+            parameterStr = ' AND sim.parameterId > 0'
+        else:
+            parameterStr = ''
+
+        sqlcommand = 'SELECT sim.simulationId, sim.parameterId, sp.year, normDiff.tracer/norm.tracer FROM Simulation AS sim, Simulation AS sim2, Spinup AS sp, Tracer{:s}Norm AS norm, TracerDifference{:s}{:s}Norm AS normDiff WHERE sim.model = ? AND sim.timestep = ?{:s} AND sim.simulationId = sp.simulationId AND sp.tolerance < ? AND NOT EXISTS (SELECT * FROM Spinup AS sp2 WHERE sp.simulationId = sp2.simulationId AND sp2.tolerance < ? AND sp.year > sp2.year) AND sim2.simulationId = norm.simulationId AND norm.year = ? AND normDiff.simulationIdA = sim.simulationId AND normDiff.simulationIdB = sim2.simulationId AND normDiff.yearB = ? AND sim.model = sim2.model AND sim.parameterId = sim2.parameterId AND sim.concentrationId = sim2.concentrationId AND sim2.timestep = ? AND normDiff.yearA >= sp.year AND NOT EXISTS (SELECT * FROM TracerDifference{:s}{:s}Norm AS normDiff2 WHERE normDiff.simulationIdA = normDiff2.simulationIdA AND normDiff.simulationIdB = normDiff2.simulationIdB AND normDiff.yearB = normDiff2.yearB AND normDiff2.yearA >= sp.year AND normDiff2.yearA < normDiff.yearA) ORDER BY sim.parameterId;'.format(norm, trajectory, norm, parameterStr, trajectory, norm)
+        self._c.execute(sqlcommand, (model, timestep, tolerance, tolerance, 10000, 10000, 1))
+        simrows = self._c.fetchall()
+        simdata = np.empty(shape=(len(simrows), 4))
+
+        i = 0
+        for row in simrows:
+            simdata[i, 0] = row[0]
+            simdata[i, 1] = row[1]
+            simdata[i, 2] = row[2]
+            simdata[i, 3] = row[3]
+            i = i+1
+
+        return simdata
+
+
+    def read_costfunction_relNorm(self, model, timestep, year=10000, costfunction='OLS', measurementId=0, lhs=True):
+        """
+        Returns cost function and spin-up tolerance values
+
+        Returns the cost function value and spin-up tolerance value for every
+        parameter and the given model.
+
+        Parameters
+        ----------
+        model : str
+            Name of the biogeochemical model
+        timestep : int
+            Time step used for the spin up calculation
+        year : int, default: 10000
+            Used model year of the spin up (for the spin up is the previous
+            model year used)
+        costfunction : {'OLS', 'GLS', 'WLS'}, default: 'OLS'
+            Type of the cost function
+        measurementId : int, default: 0
+            Selection of the tracer included in the cost function calculation
+        lhs : bool, default: True
+            Use only the model parameter of the latin hypercube sample
+
+        Returns
+        -------
+        numpy.ndarray
+            2D array with the simulationId, parameterId, cost function and
+            tolerance of the spin-up
+        """
+        assert model in Metos3d_Constants.METOS3D_MODELS
+        assert timestep in Metos3d_Constants.METOS3D_TIMESTEPS
+        assert type(year) is int and 0 <= year
+        assert costfunction in ['OLS', 'GLS', 'WLS']
+        assert type(measurementId) is int and 0 <= measurementId
+        assert type(lhs) is bool
+
+        if lhs:
+            parameterStr = ' AND sim.parameterId > 0'
+        else:
+            parameterStr = ''
+
+        sqlcommand = 'SELECT sim.simulationId, sim.parameterId, c.{:s}, sp.tolerance FROM Simulation AS sim, CostfuctionEvaluation AS c, Spinup AS sp WHERE sim.model = ? AND sim.timestep = ?{:s} AND sim.simulationId = c.simulationId and c.year = ? AND c.measurementId = ? AND sim.simulationId = sp.simulationId AND sp.year = ? ORDER BY sim.parameterId;'.format(costfunction, parameterStr)
+        self._c.execute(sqlcommand, (model, timestep, year, measurementId, year-1))
+        simrows = self._c.fetchall()
+        simdata = np.empty(shape=(len(simrows), 4))
+
+        i = 0
+        for row in simrows:
+            simdata[i, 0] = row[0]
+            simdata[i, 1] = row[1]
+            simdata[i, 2] = row[2]
+            simdata[i, 3] = row[3]
+            i = i+1
+
+        return simdata
 
 
     def read_costfunction_values_for_simid(self, simulationId, costfunction='OLS', measurementId=0):
@@ -1929,8 +2068,8 @@ class Timesteps_Database(DatabaseMetos3d):
         assert costfunction in ['OLS', 'WLS', 'GLS']
         assert type(measurementId) is int and measurementId >= 0
 
-        sqlcommand = 'SELECT sim_c.timestep AS timestep, (c.{}-d.{})/d.{} AS relError FROM CostfuctionEvaluation AS c, CostfuctionEvaluation AS d, Simulation AS sim_c, Simulation AS sim_d, Convergence AS con_c, Convergence AS con_d WHERE sim_c.model = ? AND sim_c.timestep = ? AND sim_c.parameterId = ? AND sim_c.simulationId = con_c.simulationId AND con_c.convergence = ? AND c.year=? AND c.measurementId = ? AND sim_c.simulationId = c.simulationId AND sim_d.timestep = ? AND sim_c.model = sim_d.model AND sim_c.parameterId = sim_d.parameterId AND sim_c.concentrationId = sim_d.concentrationId AND d.simulationId = sim_d.simulationId AND d.measurementId = c.measurementId AND sim_d.simulationId = con_d.simulationId AND con_d.convergence = ? AND d.year=? ORDER BY c.simulationId;'.format(costfunction, costfunction, costfunction)
-        self._c.execute(sqlcommand, (model, timestep, parameterId, int(True), year, measurementId, 1, int(True), year))
+        sqlcommand = 'SELECT sim.timestep AS timestep, c.{} AS {} FROM CostfuctionEvaluation AS c, Simulation AS sim, Convergence AS con WHERE sim.model = ? AND sim.timestep = ? AND sim.parameterId = ? AND sim.simulationId = con.simulationId AND con.convergence = ? AND c.year = ? AND c.measurementId = ? AND sim.simulationId = c.simulationId ORDER BY c.simulationId;'.format(costfunction, costfunction)
+        self._c.execute(sqlcommand, (model, timestep, parameterId, int(True), year, measurementId))
         costfunctionValue = self._c.fetchall()
         assert(len(costfunctionValue)) in [0, 1]
         return costfunctionValue

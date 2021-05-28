@@ -62,7 +62,7 @@ class TimestepsPlot(Plot):
         self._database.close_connection()
 
 
-    def plot_spinup_data(self, model, parameterId, ncol=3, subPlot=False, timestepList=Metos3d_Constants.METOS3D_TIMESTEPS, timestepListSubPlot=Metos3d_Constants.METOS3D_TIMESTEPS[:-2], axesResultSmall=[.61, .30, .3, .34], subPlotModelYear=8000):
+    def plot_spinup_data(self, model, parameterId, ncol=3, subPlot=False, timestepList=Metos3d_Constants.METOS3D_TIMESTEPS, timestepListSubPlot=Metos3d_Constants.METOS3D_TIMESTEPS[:-2], axesResultSmall=[.61, .30, .3, .34], subPlotModelYear=8000, additionalSimulationIds=[]):
         """
         Plot the spinup for the given parameterId and model for all timesteps
 
@@ -89,6 +89,9 @@ class TimestepsPlot(Plot):
             Dimensions of the subplot
         subPlotModelYear : int, default: 8000
             Start model year for the subplot
+        additionalSimulationIds : list [tuple [int]], default: []
+            List for additional spin up plots using the simulationId and
+            timestep defined in the tuples
         """
         assert model in Metos3d_Constants.METOS3D_MODELS
         assert parameterId in range(0, Timesteps_Constants.PARAMETERID_MAX+1)
@@ -98,10 +101,14 @@ class TimestepsPlot(Plot):
         assert type(timestepListSubPlot) is list
         assert type(axesResultSmall) is list and len(axesResultSmall) == 4
         assert type(subPlotModelYear) is int and 0 <= subPlotModelYear
+        assert type(additionalSimulationIds) is list
 
         if subPlot:
             self.__axesResultSmall = plt.axes(axesResultSmall)
 
+        simulationIdsPlot = []
+
+        #Plot the spin up for the model and parameterId using default initial concentration
         simulationIds = self._database.get_simids_timestep_for_parameter_model(parameterId, model)
         for simulationId, timestep in simulationIds:
             if timestep in timestepList and self._database.get_convergence(simulationId):
@@ -111,18 +118,62 @@ class TimestepsPlot(Plot):
                     if subPlot and timestep in timestepListSubPlot:
                         self.__axesResultSmall.plot(data[subPlotModelYear:,0], data[subPlotModelYear:,1], color = self._colorsTimestep[timestep], label = '{}\si{{\Timestep}}'.format(timestep))
 
-                    #Set labels
-                    self._axesResult.set_xlabel(r'Model years [\si{{\Modelyear}}]')
-                    self._axesResult.set_ylabel(r'Norm [\si{\milli\mole\Phosphat\per\cubic\meter}]')
                 except IOError as e:
                     print("Error message: " + e.args[1])
                     print("Error message: Figure with was not created.")
+
+        #Plot the spin up for the extra simulationIds
+        for simulationId, timestep in additionalSimulationIds:
+            if timestep in timestepList and self._database.get_convergence(simulationId):
+                data = self._database.read_spinup_values_for_simid(simulationId)
+                try:
+                    self._axesResult.plot(data[:,0], data[:,1], color = self._colorsTimestep[timestep], linestyle='dashed')
+
+                except IOError as e:
+                    print("Error message: " + e.args[1])
+                    print("Error message: Figure with was not created.")
+
+        #Set labels
+        self._axesResult.set_xlabel(r'Model years [\si{{\Modelyear}}]')
+        self._axesResult.set_ylabel(r'Norm [\si{\milli\mole\Phosphat\per\cubic\meter}]')
         self._axesResult.set_yscale('log', basey=10)
         self._axesResult.legend(loc='best', ncol=ncol)
 
         if subPlot:
             plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
+
+    def plot_spinup_data_simIds(self, ncol=3, additionalSimulationIds=[]):
+        """
+        Plot the spinup for the given simulationIds 
+
+        Parameters
+        ----------
+        ncol : int, default: 3
+            Number of columns for the legend
+        additionalSimulationIds : list [tuple], default: []
+            List for additional spin up plots using the simulationId and
+            label defined in the tuples
+        """
+        assert type(ncol) is int and 0 < ncol
+        assert type(additionalSimulationIds) is list
+
+        #Plot the spin up for the extra simulationIds
+        for simulationId, label in additionalSimulationIds:
+            if self._database.get_convergence(simulationId):
+                data = self._database.read_spinup_values_for_simid(simulationId)
+                try:
+                    self._axesResult.plot(data[:,0], data[:,1], label=label)
+
+                except IOError as e:
+                    print("Error message: " + e.args[1])
+                    print("Error message: Figure with was not created.")
+
+        #Set labels
+        self._axesResult.set_xlabel(r'Model years [\si{{\Modelyear}}]')
+        self._axesResult.set_ylabel(r'Norm [\si{\milli\mole\Phosphat\per\cubic\meter}]')
+        self._axesResult.set_yscale('log', basey=10)
+        self._axesResult.legend(loc='best', ncol=ncol)
 
     def plot_hist_spinup_year(self, timestep, tolerance, model='N', bins=10, lhs=True):
         """
@@ -315,7 +366,7 @@ class TimestepsPlot(Plot):
         self.__axesResult.set_xticklabels(('', '1', '2', '4', '8', '16', '32', '64'))
 
 
-    def plot_tracer_norm_data(self, parameterId, model, norm='2', trajectory='', year=None, ncol=3):
+    def plot_tracer_norm_data(self, parameterId, model, norm='2', trajectory='', year=None, ncol=3, additionalSimulationIds=[]):
         """
         Plot the norm of the tracer concentration difference
         
@@ -339,6 +390,9 @@ class TimestepsPlot(Plot):
             Use the reference solution (1dt solution) at the given year (e.g. the reference soluation after a spin up over 10000 model years). If the value is None, use the same year for the reference and coarse solution.
         ncol : int, default: 3
             Number of columns for the legend
+        additionalSimulationIds : list [tuple [int]], default: []
+            List for additional spin up plots using the simulationId and
+            timestep defined in the tuples
         """
         assert parameterId in range(0, Timesteps_Constants.PARAMETERID_MAX+1)
         assert model in Metos3d_Constants.METOS3D_MODELS
@@ -346,6 +400,7 @@ class TimestepsPlot(Plot):
         assert trajectory in ['', 'trajectory']
         assert year is None or type(year) is int and 0 <= year
         assert type(ncol) is int and 0 < ncol
+        assert type(additionalSimulationIds) is list
 
         simids = self._database.get_simids_timestep_for_parameter_model(parameterId, model)
         #Get 1dt solution vector or value for year 10000
@@ -367,13 +422,99 @@ class TimestepsPlot(Plot):
                     data[:,1] = data[:,1] / data_solution
                 try:
                     self._axesResult.plot(data[:,0], data[:,1], color=self._colorsTimestep[timestep], label = r'{}\si{{\Timestep}}'.format(timestep))
-                    self._axesResult.set_xlabel(r'Model years [\si{{\Modelyear}}]')
-                    self._axesResult.set_ylabel(r'Relative error')
                 except IOError as e:
                     print("Error message: " + e.args[1])
                     print("Error message: Result do not plot")
+
+        #Plot the norm for the extra simulationIds
+        for simulationId, timestep in additionalSimulationIds:
+            if self._database.get_convergence(simulationId):
+                data = self._database.read_tracer_difference_norm_values_for_simid(simulationId, simids[i][0], yearB=year, norm=norm, trajectory=trajectory)
+                if year is None:
+                    data[:,1] = data[:,1] / data_solution[:,1]
+                else:
+                    data[:,1] = data[:,1] / data_solution
+                try:
+                    self._axesResult.plot(data[:,0], data[:,1], color = self._colorsTimestep[timestep], linestyle='dashed')
+
+                except IOError as e:
+                    print("Error message: " + e.args[1])
+                    print("Error message: Figure with was not created.")
+
+        #Set labels
+        self._axesResult.set_xlabel(r'Model years [\si{{\Modelyear}}]')
+        self._axesResult.set_ylabel(r'Relative error')
         self._axesResult.set_yscale('log', basey=10)
         self._axesResult.legend(loc='best', ncol=ncol)
+
+
+    def plot_tracer_norm_data_simIds(self, parameterId, model, norm='2', trajectory='', year=None, ncol=3, additionalSimulationIds=[]):
+        """
+        Plot the norm of the tracer concentration difference
+        
+        Plot the development over the spin up (10000 years) of the difference
+        between the 1dt solution and coarse solutions (2, 4, 8, 16, 32 and
+        64dt) in the norm for the given parameterId and the model for all
+        time steps.
+
+        Parameters
+        ----------
+        parameterId : int
+            Id of the parameter of the latin hypercube example
+        model : str
+            Name of the biogeochemical model
+        norm : string, default: '2'
+            Used norm
+        trajectory : str, default: ''
+            Use for '' the norm only at the first time point in a model year
+            and use for 'trajectory' the norm over the whole trajectory
+        year : int, default: None
+            Use the reference solution (1dt solution) at the given year (e.g. the reference soluation after a spin up over 10000 model years). If the value is None, use the same year for the reference and coarse solution.
+        ncol : int, default: 3
+            Number of columns for the legend
+        additionalSimulationIds : list [tuple], default: []
+            List for additional spin up plots using the simulationId and
+            label defined in the tuples
+        """
+        assert parameterId in range(0, Timesteps_Constants.PARAMETERID_MAX+1)
+        assert model in Metos3d_Constants.METOS3D_MODELS
+        assert norm in DB_Constants.NORM
+        assert trajectory in ['', 'trajectory']
+        assert year is None or type(year) is int and 0 <= year
+        assert type(ncol) is int and 0 < ncol
+        assert type(additionalSimulationIds) is list
+
+        simids = self._database.get_simids_timestep_for_parameter_model(parameterId, model)
+        #Get 1dt solution vector or value for year 10000
+        i = 0
+        while simids[i][1] != 1:
+            i = i+1
+        if year is None:
+            data_solution = self._database.read_tracer_norm_values_for_simid(simids[i][0], norm=norm, trajectory=trajectory)
+        else:
+            data_solution = self._database.read_tracer_norm_value_for_simid_year(simids[i][0], year, norm=norm, trajectory=trajectory)
+
+        #Plot the norm for the extra simulationIds
+        for simulationId, label in additionalSimulationIds:
+            if self._database.get_convergence(simulationId):
+                data = self._database.read_tracer_difference_norm_values_for_simid(simulationId, simids[i][0], yearB=year, norm=norm, trajectory=trajectory)
+                if year is None:
+                    data[:,1] = data[:,1] / data_solution[:,1]
+                else:
+                    data[:,1] = data[:,1] / data_solution
+                try:
+                    self._axesResult.plot(data[:,0], data[:,1], label=label)
+
+                except IOError as e:
+                    print("Error message: " + e.args[1])
+                    print("Error message: Figure with was not created.")
+
+        #Set labels
+        self._axesResult.set_xlabel(r'Model years [\si{{\Modelyear}}]')
+        self._axesResult.set_ylabel(r'Relative error')
+        self._axesResult.set_yscale('log', basey=10)
+        self._axesResult.legend(loc='best', ncol=ncol)
+
 
     def plot_hist_tracer_norm(self, timestep, model='N', year=10000, norm='Boxweighted', endpoint=False, bins=10, lhs=True):
         """
@@ -1012,6 +1153,107 @@ class TimestepsPlot(Plot):
             except IOError as e:
                 print("Error message: " + e.args[1])
                 print("Error message: Figure was not created.")
+
+
+    def plot_scatter_required_model_years(self, model, tolerance=0.0001, norm='2', trajectory='', timestepList=Metos3d_Constants.METOS3D_TIMESTEPS, alpha=0.75):
+        """
+        Scatter plot of the norm against the required model years
+
+        Scatter plot of the relation between the norm (norm of tracer
+        concentration difference between the solution of the spin up using the
+        given tolerance and the reference solution (using 1dt over 10000 model
+        years) and the required model years to reach the given tolerance. The
+        plot visualizes the ratio for the given time steps using different
+        colors.
+
+        Parameters
+        ----------
+        model : str
+            Name of the biogeochemical model
+        tolerance : float, default: 0.0001
+            Tolerance of the spin up
+        norm : string, default: '2'
+            Used norm
+        trajectory : str, default: ''
+            Use for '' the norm only at the first time point in a model year
+            and use for 'Trajectory' the norm over the whole trajectory
+        timestepList : list [int], default: metos3dutil.metos3d.constants.
+            METOS3D_TIMESTEPS
+            Representation of the relation between spin up norm and the norm of
+            tracer difference for each specified timestep
+        alpha : float, default: 0.75
+            The alpha blending value of the scatter plot, between 0
+            (transparent) and 1 (opaque)
+        """
+        assert model in Metos3d_Constants.METOS3D_MODELS
+        assert type(tolerance) is float and 0.0 <= tolerance
+        assert norm in DB_Constants.NORM
+        assert type(timestepList) is list
+        assert type(alpha) is float and 0.0 <= alpha and alpha <= 1.0
+
+        for timestep in timestepList:
+            data = self._database.read_tolerance_required_ModelYears_relNorm(model, timestep, tolerance=tolerance, norm=norm, trajectory=trajectory, lhs=False)
+
+            if len(data) > 0:
+                try:
+                    self._axesResult.scatter(data[:,3], data[:,2], s=4, marker='.', color=self._colorsTimestep[timestep], alpha=alpha, label = r'{}\si{{\Timestep}}'.format(timestep))
+
+                    self._axesResult.set_xscale('log', basex=10)
+                    self._axesResult.set_xlabel(r'Relative error')
+                    self._axesResult.set_ylabel(r'Model years [\si{{\Modelyear}}]')
+                except IOError as e:
+                    print("Error message: " + e.args[1])
+                    print("Error message: Figure was not created.")
+
+
+    def plot_scatter_costfunction(self, model, year=10000, costfunction='OLS', measurementId=0, timestepList=Metos3d_Constants.METOS3D_TIMESTEPS, alpha=0.75):
+        """
+        Scatter plot of spin-up tolerance against the cost function value
+
+        Scatter plot of the relation between the spin-up tolerance and the cost
+        function value. The plot visualizes the ratio for the given time steps
+        using different colors.
+
+        Parameters
+        ----------
+        model : str
+            Name of the biogeochemical model
+        year : int, default: 10000
+            Used model year of the spin up (for the spin up is the previous
+            model year used)
+        costfunction : {'OLS', 'GLS', 'WLS'}, default: 'OLS'
+            Type of the cost function
+        measurementId : int, default: 0
+            Selection of the tracer included in the cost function calculation
+        timestepList : list [int], default: metos3dutil.metos3d.constants.
+            METOS3D_TIMESTEPS
+            Representation of the relation between spin up norm and the norm of
+            tracer difference for each specified timestep
+        alpha : float, default: 0.75
+            The alpha blending value of the scatter plot, between 0
+            (transparent) and 1 (opaque)
+        """
+        assert model in Metos3d_Constants.METOS3D_MODELS
+        assert type(year) is int and 0 <= year
+        assert costfunction in ['OLS', 'GLS', 'WLS']
+        assert type(measurementId) is int and 0 <= measurementId
+        assert type(timestepList) is list
+        assert type(alpha) is float and 0.0 <= alpha and alpha <= 1.0
+
+        for timestep in timestepList:
+            data = self._database.read_costfunction_relNorm(model, timestep, year=year, costfunction=costfunction, measurementId=measurementId, lhs=False)
+
+            if len(data) > 0:
+                try:
+                    self._axesResult.scatter(data[:,3], data[:,2], s=4, marker='.', color=self._colorsTimestep[timestep], alpha=alpha, label = r'{}\si{{\Timestep}}'.format(timestep))
+
+                    self._axesResult.set_xscale('log', basex=10)
+                    self._axesResult.set_yscale('log', basey=10)
+                    self._axesResult.set_xlabel(r'Norm [\si{\milli\mole\Phosphat\per\cubic\meter}]')
+                    self._axesResult.set_ylabel(r'Cost functional $J_{\text{OLS}}$')
+                except IOError as e:
+                    print("Error message: " + e.args[1])
+                    print("Error message: Figure was not created.")
 
 
     def plot_oscillation_model_parameter(self, model, timestep):
