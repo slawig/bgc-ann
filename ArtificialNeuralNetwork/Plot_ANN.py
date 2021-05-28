@@ -40,7 +40,7 @@ def main():
     colorloss = 'C7'
     color = 'C0'
 
-    for annId in [213, 214, 221, 225, 231]:
+    for annId in [222, 213, 207]: # 214, 221, 225, 231]:
         print('Plot for annId {}'.format(annId))
 
         os.makedirs(os.path.join(PATH_FIGURE, 'AnnId_{:0>5d}'.format(annId)), exist_ok=True)
@@ -49,14 +49,14 @@ def main():
         plotTraining(annPlot, annId, colors=[color, colorloss])
 
         #Surface plot
-        #plotTracerConcentrationSurface(annId, 0, massAdjustment=False, predictionMetos3d=False, plotSlice=True, slicenum=[117])
-        #plotTracerConcentrationSurface(annId, 0, massAdjustment=True, predictionMetos3d=False, plotSlice=True, slicenum=[117])
-        #plotTracerConcentrationSurface(annId, 0, massAdjustment=True, predictionMetos3d=True, plotSlice=True, slicenum=[117])
+        plotTracerConcentrationSurface(annId, 0, massAdjustment=False, predictionMetos3d=False, plotSlice=True, slicenum=[117])
+        plotTracerConcentrationSurface(annId, 0, massAdjustment=True, predictionMetos3d=False, plotSlice=True, slicenum=[117])
+        plotTracerConcentrationSurface(annId, 0, massAdjustment=True, predictionMetos3d=True, plotSlice=True, slicenum=[117])
 
         #Tatortplots
         plotScatterNorm(annPlot, annId, orientation='etnatp4', rmax=None, color=color)
-        #plotScatterRelNorm(annPlot, annId, massAdjustment=False, tolerance=None, year=0, rmax=0.4)
-        #plotScatterRelNorm(annPlot, annId, massAdjustment=True, tolerance=None, year=0, rmax=0.4)
+        plotScatterRelNorm(annPlot, annId, massAdjustment=False, tolerance=None, year=0, rmax=0.4)
+        plotScatterRelNorm(annPlot, annId, massAdjustment=True, tolerance=None, year=0, rmax=0.4)
 
         #Histogram with required model years (Figure 4.7)
         plotHistSpinupYear(annPlot, annId, massAdjustment=True, tolerance=10**(-4), color=color)

@@ -57,7 +57,7 @@ def main():
     #Surface plot (Figure 4.2, 4.3 and 4.4)
     plotTracerConcentrationSurface(annId, 0, massAdjustment=False, predictionMetos3d=False, plotSlice=True, slicenum=[117])
     plotTracerConcentrationSurface(annId, 0, massAdjustment=True, predictionMetos3d=False, plotSlice=True, slicenum=[117])
-    plotTracerConcentrationSurface(annId, 0, massAdjustment=True, predictionMetos3d=True, plotSlice=True, slicenum=[117])
+    plotTracerConcentrationSurface(annId, 0, massAdjustment=True, predictionMetos3d=True, plotSlice=True, slicenum=[117], vmax=0.00016)
 
     #Tatortplots (Figure 4.5: relative error for all sets of model parameter)
     plotScatterNorm(annPlot, annId, orientation='etnatp4', rmax=0.4, color=color)
@@ -191,15 +191,15 @@ def plotScatterNorm(annPlot, annId, orientation='etnatp4', rmax=0.4, color='b'):
     annPlot._axesResult.set_rlabel_position(rposition)
     annPlot.set_subplot_adjust(left=0.005, bottom=0.005, right=0.995, top=0.995)
 
-    #the spin up calculation using a spin up tolerance of 10**(-4)
+
+    #The spin up calculation over 1000 model years
     annPlot.set_subplot(0,3)
-    annPlot.plot_scatter_rel_norm(annId, massAdjustment=True, tolerance=10**(-4), year=None, rmax=0.00125, rposition=rposition, color=color)
+    annPlot.plot_scatter_rel_norm(annId, massAdjustment=False, tolerance=None, year=1000, rmax=rmax, rposition=rposition, color=color)
     annPlot._axesResult.xaxis.grid(False)
     annPlot._axesResult.set_xticklabels([])
-    annPlot._axesResult.set_yticks([0.0005, 0.001, 0.00125], minor=False)
-    annPlot._axesResult.set_yticks([0.00025, 0.00075], minor=True)
+    annPlot._axesResult.set_yticks([0.2, 0.4], minor=False)
+    annPlot._axesResult.set_yticks([0.1, 0.3], minor=True)
     annPlot._axesResult.yaxis.grid(True, which='minor', lw=0.5, alpha=0.5)
-    annPlot._axesResult.set_yticklabels(['', '', '0.00125'])
     annPlot._axesResult.set_rlabel_position(rposition)
     annPlot.set_subplot_adjust(left=0.005, bottom=0.005, right=0.995, top=0.995)
 
@@ -293,7 +293,7 @@ def plotViolinSpinupYear(annPlot, annIdList, massAdjustment=False, tolerance=Non
     annPlot.close_fig()
 
 
-def plotTracerConcentrationSurface(annId, parameterId, massAdjustment=False, tolerance=None, tracerDifference=True, relativeError=True, predictionMetos3d=False, cmap=None, plotSurface=True, plotSlice=False, slicenum=None, orientation='etnasp'):
+def plotTracerConcentrationSurface(annId, parameterId, massAdjustment=False, tolerance=None, tracerDifference=True, relativeError=True, predictionMetos3d=False, cmap=None, plotSurface=True, plotSlice=False, slicenum=None, orientation='etnasp', vmin=0.0, vmax=0.002):
     """
     Plot the tracer concentration for a given layer
     @author: Markus Pfeil
@@ -366,14 +366,13 @@ def plotTracerConcentrationSurface(annId, parameterId, massAdjustment=False, tol
 
         #Plot the surface concentration
         meridians = None if slicenum is None else [np.mod(Metos3d_Constants.METOS3D_GRID_LONGITUDE * x, 360) for x in slicenum]
-        cntr = surface.plot_surface(v1d, projection='robin', levels=50, vmin=0.0, vmax=0.002, ticks=plt.LinearLocator(6), format='%.1e', pad=0.05, extend='max', clim=(0.0,0.002), meridians=meridians, colorbar=False)
-
-        surface.set_subplot(0,1)
+        cntr = surface.plot_surface(v1d, projection='robin', levels=50, vmin=vmin, vmax=vmax, ticks=plt.LinearLocator(6), format='%.1e', pad=0.05, extend='max', meridians=meridians, colorbar=False)
 
         #Plot the slice plan of the concentration
         if plotSlice and slicenum is not None:
+            surface.set_subplot(0,1)
             for s in slicenum:
-                surface.plot_slice(v1d, s, levels=50, vmin=0.0, vmax=0.002, ticks=plt.LinearLocator(6), format='%.1e', pad=0.02, extend='max', colorbar=False)
+                surface.plot_slice(v1d, s, levels=50, vmin=vmin, vmax=vmax, ticks=plt.LinearLocator(6), format='%.1e', pad=0.02, extend='max', colorbar=False)
 
         plt.tight_layout(pad=0.05, w_pad=0.15)
         cbar = surface._fig.colorbar(cntr, ax=surface._axes[0], format='%.1e', ticks=plt.LinearLocator(5), pad=0.02, aspect=40, extend='max', orientation='horizontal', shrink=0.8)

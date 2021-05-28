@@ -486,12 +486,28 @@ class AbstractClassSimulation(ABC):
         return initialConcentration * np.ones(shape=(Metos3d_Constants.METOS3D_VECTOR_LEN, len(Metos3d_Constants.METOS3D_MODEL_TRACER[self._metos3dModel])))
 
 
-    def _calculateNorm(self):
+    def _calculateNorm(self, simulationIdReference=None, pathReferenceTracer=None):
         """
         Calculates the tracer norm values for every tracer output
+
+        Parameters
+        ----------
+        simulationIdReference : int or None, default: None
+            Id of the simulation used as reference. If None, the function
+            _set_calculateNormReferenceSimulationParameter is used to set this
+            parameter.
+        pathReferenceTracer : str or None, default: None
+            Path of the reference simulation directory. If None, the function
+            _set_calculateNormReferenceSimulationParameter is used to set this
+            parameter.
         """
+        assert simulationIdReference is None or type(simulationIdReference) is int and 0 <= simulationIdReference
+        assert pathReferenceTracer is None or type(pathReferenceTracer) is str
+        assert simulationIdReference is None and pathReferenceTracer is None or simulationIdReference is not None and pathReferenceTracer is not None
+
         #Parameter of the reference simulation
-        simulationIdReference, pathReferenceTracer = self._set_calculateNormReferenceSimulationParameter()
+        if simulationIdReference is None or pathReferenceTracer is None:
+            simulationIdReference, pathReferenceTracer = self._set_calculateNormReferenceSimulationParameter()
         pathReferenceTracer = os.path.join(pathReferenceTracer, 'Tracer')
         assert os.path.exists(pathReferenceTracer) and os.path.isdir(pathReferenceTracer)
         tracerReference = self._getTracerOutput(pathReferenceTracer, Metos3d_Constants.PATTERN_TRACER_OUTPUT, year=None)

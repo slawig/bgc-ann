@@ -169,8 +169,8 @@ class SurfacePlot(Plot):
             if colorbar:
                 cbar = m.colorbar(cntr, location='bottom', format=format, ticks=ticks, pad=pad, extend=extend, extendfrac=extendfrac, shrink=0.5)
 
-            if clim is not None:
-                plt.clim(clim[0], clim[1])
+            #if clim is not None:
+            #    plt.clim(clim[0], clim[1])
 
             #self.set_subplot_adjust(left=0.01, bottom=0.01, right=0.99, top=0.99)
 
